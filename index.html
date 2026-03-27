@@ -133,110 +133,89 @@ body {
 
 /* ── ウイスキーカードグリッド ── */
 .card-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
 }
 .whisky-card {
+  display: flex;
+  align-items: stretch;
   background: linear-gradient(135deg, rgba(90,58,26,.12), rgba(14,10,6,.5));
-  border: 1px solid var(--border);
+  border: 1px solid #2a1e10;
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.15s;
-  position: relative;
+  margin-bottom: 8px;
+  min-height: 90px;
 }
-.whisky-card:active { transform: scale(0.97); }
-.whisky-card:hover { border-color: var(--border2); }
+.whisky-card:active { opacity: 0.85; }
 
-.card-img {
-  width: 100%;
-  aspect-ratio: 3/4;
-  object-fit: cover;
+.card-info {
+  flex: 1;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+}
+.card-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 16px;
+  color: #e8c880;
+  line-height: 1.2;
+}
+.card-distillery {
+  font-size: 10px;
+  color: #5a3a1a;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.card-rating {
+  font-size: 13px;
+  color: #c8a860;
+  letter-spacing: 2px;
+}
+.card-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.card-tag {
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid #2a1e10;
+  color: #5a3a1a;
+  font-family: 'DM Mono', monospace;
+}
+.card-tag.region { color: #7a5020; border-color: #3a2a14; }
+.card-tag.status-stock { color: #4a7a30; border-color: #2a4a18; }
+.card-tag.status-empty { color: #7a3020; border-color: #4a1e10; }
+.card-tag.status-wish { color: #4a5a7a; border-color: #2a3a4a; }
+
+.card-img-wrap {
+  width: 72px;
+  flex-shrink: 0;
   background: #0a0806;
+  border-left: 1px solid #2a1e10;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40px;
-  position: relative;
   overflow: hidden;
 }
-.card-img img {
+.card-img-wrap img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 .card-img-placeholder {
-  width: 100%;
-  aspect-ratio: 3/4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 44px;
-  background: linear-gradient(135deg, #0e0a06, #1c1408);
-}
-.card-age-badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-family: 'DM Mono', monospace;
   font-size: 28px;
-  font-weight: 700;
-  color: var(--gold-dark);
-  line-height: 1;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  opacity: 0.3;
 }
-.card-body { padding: 10px; }
-.card-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--accent);
-  line-height: 1.3;
-  margin-bottom: 3px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.card-distillery {
-  font-family: 'DM Mono', monospace;
-  font-size: 11px;
-  color: var(--gold-deeper);
-  margin-bottom: 6px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.card-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border), transparent);
-  margin: 6px 0;
-}
-.card-note-snippet {
-  font-size: 11px;
-  color: var(--gold-dark);
-  font-style: italic;
-  line-height: 1.7;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin-bottom: 4px;
-}
-.card-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-}
-.card-rating {
-  font-size: 11px;
-  color: var(--accent);
-  letter-spacing: 3px;
-}
-.card-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
+
+/* 旧カードスタイル（後方互換） */
 .tag {
   font-size: 9px;
   font-family: 'DM Mono', monospace;
@@ -950,18 +929,28 @@ body {
     <button onclick="saveUsername()">Save</button>
   </div>
 
-  <!-- カメラ撮影エリア -->
-  <div class="camera-area" id="camera-area" onclick="openCamera()">
-    <div class="camera-icon">📸</div>
-    <div class="camera-label">Scan Label</div>
-    <div class="camera-sub">タップしてカメラを起動 → AIがラベルを読み取ります</div>
-    <img id="camera-preview" class="camera-preview" alt="preview" />
+  <!-- カメラ撮影エリア（表ラベル） -->
+  <div class="camera-area" id="camera-area-front" onclick="openCamera('front')">
+    <div class="camera-icon">📷</div>
+    <div class="camera-label">表ラベルを撮影</div>
+    <div class="camera-sub">タップしてカメラを起動・自動認識</div>
+    <img id="camera-preview-front" class="camera-preview" alt="preview" />
     <div class="scan-overlay" id="scan-overlay">
       <div class="scan-spinner"></div>
-      <div class="scan-text">Scanning...</div>
+      <div class="scan-text">読み取り中...</div>
     </div>
   </div>
-  <input type="file" id="photo-input" accept="image/*" capture="environment" onchange="onPhotoSelected(event)" />
+
+  <!-- 裏ラベル（表を撮影後に表示） -->
+  <div class="camera-area" id="camera-area-back" onclick="openCamera('back')" style="display:none; margin-top:8px;">
+    <div class="camera-icon">📷</div>
+    <div class="camera-label">裏ラベルを撮影（任意）</div>
+    <div class="camera-sub">裏も撮ると認識精度が上がります</div>
+    <img id="camera-preview-back" class="camera-preview" alt="preview" />
+  </div>
+
+  <input type="file" id="photo-input-front" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(event,'front')" />
+  <input type="file" id="photo-input-back" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(event,'back')" />
 
   <!-- スキャン結果バッジ -->
   <div class="scan-result-badge" id="scan-result-badge">
@@ -1214,6 +1203,8 @@ let editingId = null;
 let selectedAroma = [];
 let selectedTaste = [];
 let selectedFinish = [];
+let frontImageData = null;  // { base64, mediaType }
+let backImageData = null;
 
 // ── 初期化 ────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
@@ -1366,43 +1357,28 @@ function statusTagClass(status) {
 }
 
 function renderCard(e) {
-  const ageBadge = (e.age !== null && e.age !== undefined)
-    ? `<div class="card-age-badge">${e.age}</div>`
-    : '';
+  const imgHtml = e.imgUrl
+    ? `<div class="card-img-wrap"><img src="${e.imgUrl}" alt="${e.name}" onerror="this.parentElement.innerHTML='<div class=card-img-placeholder>🥃</div>'" /></div>`
+    : `<div class="card-img-wrap"><div class="card-img-placeholder">🥃</div></div>`;
 
-  const imgArea = e.imgUrl
-    ? `<div class="card-img">${ageBadge}<img src="${e.imgUrl}" alt="${e.name}" onerror="this.style.display='none'" /></div>`
-    : `<div class="card-img-placeholder">${ageBadge}🥃</div>`;
-
-  const statusTag = e.status
-    ? `<span class="tag ${statusTagClass(e.status)}">${e.status}</span>`
-    : '';
-  const regionTag = e.region
-    ? `<span class="tag region">${regionEmoji(e.region)} ${e.region}</span>`
-    : '';
-  const shopLine = e.shopName
-    ? `<div class="card-shop">📍 ${e.shopName}</div>`
-    : '';
-  const aromaText = Array.isArray(e.aroma) ? e.aroma.join(' / ') : (e.aroma || '');
-  const noteSnippet = aromaText
-    ? `<div class="card-divider"></div><div class="card-note-snippet">${aromaText.slice(0,50)}${aromaText.length>50?'…':''}</div>`
-    : '';
+  const statusClass = e.status === '在庫あり' ? 'status-stock' : e.status === '飲み切り' ? 'status-empty' : e.status === 'ウィッシュリスト' ? 'status-wish' : '';
+  const regionEmojiMap = { 'スコットランド':'🏴', '日本':'🇯🇵', 'アイルランド':'🇮🇪', 'アメリカ':'🇺🇸', 'カナダ':'🇨🇦', 'その他':'🌍' };
 
   return `
     <div class="whisky-card" onclick="openModal('${e.id}')">
-      ${imgArea}
-      <div class="card-body">
+      <div class="card-info">
         <div class="card-name">${e.name}</div>
         ${e.distillery ? `<div class="card-distillery">${e.distillery}</div>` : ''}
-        ${noteSnippet}
-        <div class="card-meta">
-          <div class="card-rating">${e.rating || ''}</div>
-        </div>
+        ${e.rating ? `<div class="card-rating">${e.rating}</div>` : ''}
         <div class="card-tags">
-          ${regionTag}${statusTag}
+          ${e.region ? `<span class="card-tag region">${regionEmojiMap[e.region] || ''} ${e.region}</span>` : ''}
+          ${e.age ? `<span class="card-tag">${e.age}年</span>` : ''}
+          ${e.abv ? `<span class="card-tag">${e.abv}%</span>` : ''}
+          ${e.status ? `<span class="card-tag ${statusClass}">${e.status}</span>` : ''}
+          ${e.shopName ? `<span class="card-tag">📍 ${e.shopName}</span>` : ''}
         </div>
-        ${shopLine}
       </div>
+      ${imgHtml}
     </div>`;
 }
 
@@ -1564,50 +1540,90 @@ async function deleteEntry() {
 }
 
 // ── カメラ・写真認識 ───────────────────────────────────────────────────────
-function openCamera() {
-  document.getElementById('photo-input').click();
+function openCamera(side) {
+  document.getElementById(`photo-input-${side}`).click();
 }
 
-function onPhotoSelected(event) {
+function onPhotoSelected(event, side) {
   const file = event.target.files[0];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = async (e) => {
     const dataUrl = e.target.result;
-    const preview = document.getElementById('camera-preview');
+    const base64 = dataUrl.split(',')[1];
+    const mediaType = file.type || 'image/jpeg';
+
+    // プレビュー表示
+    const preview = document.getElementById(`camera-preview-${side}`);
     preview.src = dataUrl;
     preview.style.display = 'block';
 
-    const overlay = document.getElementById('scan-overlay');
-    overlay.classList.add('visible');
-    document.getElementById('camera-area').classList.add('scanning');
-
-    try {
-      const base64 = dataUrl.split(',')[1];
-      const mediaType = file.type || 'image/jpeg';
-
-      const res = await fetch(`${WORKER_URL}/scan`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: base64, mediaType }),
-      });
-      const data = await res.json();
-
-      if (data.error) throw new Error(data.error);
-
-      applyScannedData(data);
-      document.getElementById('scan-result-badge').classList.add('visible');
-      showToast('ラベルを読み取りました', '✓');
-    } catch(err) {
-      showToast('読み取りに失敗: ' + err.message, '✕');
-    } finally {
-      overlay.classList.remove('visible');
-      document.getElementById('camera-area').classList.remove('scanning');
+    if (side === 'front') {
+      frontImageData = { base64, mediaType };
+      // 裏ラベルエリアを表示
+      document.getElementById('camera-area-back').style.display = 'block';
+      // スキャン実行
+      await doScan();
+      // 表画像をR2にアップロード
+      await uploadFrontImage();
+    } else {
+      backImageData = { base64, mediaType };
+      // 裏も撮ったら再スキャン
+      await doScan();
     }
   };
   reader.readAsDataURL(file);
   event.target.value = '';
+}
+
+async function doScan() {
+  if (!frontImageData) return;
+  const overlay = document.getElementById('scan-overlay');
+  overlay.classList.add('visible');
+  document.getElementById('camera-area-front').classList.add('scanning');
+  try {
+    const body = {
+      image: frontImageData.base64,
+      mediaType: frontImageData.mediaType,
+    };
+    if (backImageData) {
+      body.imageBack = backImageData.base64;
+      body.mediaTypeBack = backImageData.mediaType;
+    }
+    const res = await fetch(`${WORKER_URL}/scan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    applyScannedData(data);
+    document.getElementById('scan-result-badge').classList.add('visible');
+    showToast(backImageData ? '表・裏から読み取りました！' : 'ラベルを読み取りました！', '✓');
+  } catch(err) {
+    showToast('読み取りに失敗しました: ' + err.message, '✕');
+  } finally {
+    overlay.classList.remove('visible');
+    document.getElementById('camera-area-front').classList.remove('scanning');
+  }
+}
+
+async function uploadFrontImage() {
+  if (!frontImageData) return;
+  try {
+    const res = await fetch(`${WORKER_URL}/upload`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: frontImageData.base64, mediaType: frontImageData.mediaType }),
+    });
+    const data = await res.json();
+    if (data.url) {
+      document.getElementById('f-imgurl').value = data.url;
+      showToast('画像を保存しました', '🖼️');
+    }
+  } catch(e) {
+    // アップロード失敗は無視（手動でURL入力可能）
+  }
 }
 
 function applyScannedData(data) {
@@ -1745,7 +1761,11 @@ function resetForm() {
   editingId = null;
   document.querySelectorAll('.rating-opt').forEach(opt => opt.classList.remove('selected'));
   document.querySelectorAll('.note-chip').forEach(c => c.classList.remove('selected'));
-  document.getElementById('camera-preview').style.display = 'none';
+  frontImageData = null;
+  backImageData = null;
+  document.getElementById('camera-preview-front').style.display = 'none';
+  document.getElementById('camera-preview-back').style.display = 'none';
+  document.getElementById('camera-area-back').style.display = 'none';
   document.getElementById('scan-result-badge').classList.remove('visible');
   document.getElementById('submit-btn').textContent = '— 登録する —';
 }
