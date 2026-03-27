@@ -698,25 +698,27 @@ body {
 #toast {
   position: fixed;
   bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%) translateY(80px);
+  left: 16px;
+  right: 16px;
+  transform: translateY(80px);
   background: var(--s2);
   border: 1px solid var(--gold-dark);
   border-radius: 8px;
-  padding: 11px 18px;
-  font-size: 12px;
+  padding: 11px 14px;
+  font-size: 11px;
   font-family: 'DM Mono', monospace;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   color: var(--accent);
   box-shadow: 0 4px 24px rgba(90,56,16,0.25);
   z-index: 999;
   transition: transform 0.25s ease;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-all;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
 }
-#toast.show { transform: translateX(-50%) translateY(0); }
+#toast.show { transform: translateY(0); }
 
 /* ── ユーザー名設定 ── */
 .username-banner {
