@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ウイスキーコレクション</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #18181f;
+  --s1: #101015;
+  --s2: #1e1e26;
+  --s3: #26262f;
+  --border: #2c2c38;
+  --border2: #3c3c4a;
+  --text: #f0f0f2;
+  --muted: #68687a;
+  --accent: #f0a500;
+  --accent2: #f5be40;
+  --green: #22c55e;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --purple: #a78bfa;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --bg: #fdf6ee;
+    --s1: #ffffff;
+    --s2: #fdf0e4;
+    --s3: #f5e6d4;
+    --border: #e8d8c4;
+    --border2: #d8c4a8;
+    --text: #1a1208;
+    --muted: #a08060;
+    --accent: #e07000;
+    --accent2: #c05800;
+    --green: #1a9e4a;
+    --red: #dc2626;
+    --blue: #2563eb;
+    --purple: #7c3aed;
+  }
+}
+
+[data-theme="dark"] {
+  --bg: #18181f; --s1: #101015; --s2: #1e1e26; --s3: #26262f;
+  --border: #2c2c38; --border2: #3c3c4a; --text: #f0f0f2; --muted: #68687a;
+  --accent: #f0a500; --accent2: #f5be40; --green: #22c55e; --red: #ef4444;
+  --blue: #3b82f6; --purple: #a78bfa;
+}
+[data-theme="light"] {
+  --bg: #fdf6ee; --s1: #ffffff; --s2: #fdf0e4; --s3: #f5e6d4;
+  --border: #e8d8c4; --border2: #d8c4a8; --text: #1a1208; --muted: #a08060;
+  --accent: #e07000; --accent2: #c05800; --green: #1a9e4a; --red: #dc2626;
+  --blue: #2563eb; --purple: #7c3aed;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif;
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 20px;
+}
+
+/* ── ヘッダー ── */
+.app-header {
+  background: var(--s1);
+  border-bottom: 0.5px solid var(--border);
+  padding: 14px 16px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+.header-titles { flex: 1; }
+.header-title { font-size: 17px; font-weight: 900; letter-spacing: -0.02em; }
+.header-title span { color: var(--accent); }
+.header-sub { font-size: 10px; color: var(--muted); letter-spacing: 0.08em; margin-top: 1px; }
+.theme-btn {
+  background: var(--s2);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text);
+  font-family: inherit;
+}
+
+/* ── タブバー ── */
+.tab-bar {
+  display: flex;
+  background: var(--s1);
+  border-bottom: 0.5px solid var(--border);
+  position: sticky;
+  top: 57px;
+  z-index: 99;
+}
+.tab-btn {
+  flex: 1;
+  padding: 12px 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  transition: all 0.15s;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── タブコンテンツ ── */
+.tab-content { display: none; padding: 14px 14px 80px; }
+.tab-content.active { display: block; }
+
+/* ── フィルターチップ ── */
+.filter-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-bottom: 12px;
+  padding-bottom: 2px;
+}
+.filter-row::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 0.5px solid var(--border2);
+  background: var(--s2);
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: 'Noto Sans JP', sans-serif;
+  transition: all 0.12s;
+}
+.chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ── ウイスキーカードグリッド ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.whisky-card {
+  background: var(--s2);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.whisky-card:active { transform: scale(0.97); }
+.whisky-card:hover { border-color: var(--border2); }
+
+.card-img {
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  background: var(--s3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  position: relative;
+  overflow: hidden;
+}
+.card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.card-img-placeholder {
+  width: 100%;
+  aspect-ratio: 3/4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+}
+.card-body { padding: 10px; }
+.card-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  margin-bottom: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card-distillery {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+.card-rating {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+}
+.card-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.tag {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: var(--s3);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.tag.region { background: rgba(59,130,246,0.15); color: var(--blue); }
+.tag.status-stock { background: rgba(34,197,94,0.15); color: var(--green); }
+.tag.status-empty { background: rgba(239,68,68,0.15); color: var(--red); }
+.tag.status-wish { background: rgba(59,130,246,0.15); color: var(--blue); }
+
+/* ── 追加フォーム ── */
+.camera-area {
+  background: var(--s2);
+  border: 1.5px dashed var(--border2);
+  border-radius: 12px;
+  padding: 24px 16px;
+  text-align: center;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+.camera-area:active { transform: scale(0.98); }
+.camera-area.scanning { border-color: var(--accent); }
+
+.camera-icon { font-size: 36px; margin-bottom: 8px; }
+.camera-label { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.camera-sub { font-size: 12px; color: var(--muted); }
+.camera-preview {
+  width: 100%;
+  border-radius: 8px;
+  margin-top: 12px;
+  display: none;
+  max-height: 200px;
+  object-fit: cover;
+}
+.scan-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(240,165,0,0.08);
+  border-radius: 12px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+}
+.scan-overlay.visible { display: flex; }
+.scan-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(240,165,0,0.3);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.scan-text { font-size: 13px; color: var(--accent); font-weight: 600; }
+
+#photo-input { display: none; }
+
+.scan-result-badge {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(34,197,94,0.1);
+  border: 0.5px solid rgba(34,197,94,0.3);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--green);
+}
+.scan-result-badge.visible { display: flex; }
+
+.form-card {
+  background: var(--s2);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.form-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.form-row { margin-bottom: 12px; }
+.form-row:last-child { margin-bottom: 0; }
+.form-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.req { color: var(--accent); }
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  background: var(--s3);
+  border: 0.5px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  padding: 10px 12px;
+  transition: border-color 0.15s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(240,165,0,0.1);
+}
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2368687a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+.form-textarea {
+  resize: none;
+  line-height: 1.6;
+  min-height: 80px;
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* 評価セレクター */
+.rating-selector { display: flex; gap: 6px; }
+.rating-opt {
+  flex: 1;
+  padding: 8px 4px;
+  text-align: center;
+  border: 0.5px solid var(--border2);
+  border-radius: 8px;
+  background: var(--s3);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  transition: all 0.12s;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.rating-opt.selected { border-color: var(--accent); background: rgba(240,165,0,0.1); color: var(--accent); font-weight: 700; }
+
+.btn-submit {
+  width: 100%;
+  background: var(--accent);
+  border: none;
+  border-radius: 10px;
+  padding: 15px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-top: 14px;
+}
+.btn-submit:disabled { opacity: 0.4; cursor: default; }
+.btn-submit:active:not(:disabled) { opacity: 0.85; }
+
+.btn-reset {
+  width: 100%;
+  background: none;
+  border: 0.5px solid var(--border2);
+  border-radius: 10px;
+  padding: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+/* ── ローディング ── */
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  padding: 50px 0;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: bounce 0.8s ease-in-out infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.15s; }
+.dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-8px)} }
+
+/* ── 空状態 ── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.empty-sub { font-size: 13px; color: var(--muted); }
+
+/* ── 詳細モーダル ── */
+#modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 500;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+#modal-overlay.show { display: flex; }
+.modal-sheet {
+  background: var(--s1);
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 0 0 40px;
+}
+.modal-handle-wrap { padding: 12px 0 0; text-align: center; }
+.modal-handle { display: inline-block; width: 40px; height: 4px; background: var(--border2); border-radius: 2px; }
+
+.modal-img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  background: var(--s3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+}
+.modal-img img { width: 100%; max-height: 220px; object-fit: cover; }
+.modal-img-placeholder {
+  width: 100%;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  background: linear-gradient(135deg, var(--s2) 0%, var(--s3) 100%);
+}
+
+.modal-body { padding: 16px 16px 0; }
+.modal-rating { font-size: 20px; color: var(--accent); font-weight: 700; margin-bottom: 4px; }
+.modal-name { font-size: 20px; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 4px; }
+.modal-distillery { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+.modal-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.modal-chip {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--s2);
+  border: 0.5px solid var(--border);
+  color: var(--muted);
+}
+
+.modal-spec-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 0.5px solid var(--border);
+  font-size: 14px;
+}
+.modal-spec-row:last-child { border-bottom: none; }
+.modal-spec-label { color: var(--muted); font-size: 13px; }
+.modal-spec-val { font-weight: 500; }
+
+.modal-section { margin-top: 14px; }
+.modal-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.modal-note-text {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+  background: var(--s2);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  padding: 16px 16px 0;
+  margin-top: 16px;
+}
+.btn-close {
+  flex: 1;
+  padding: 13px;
+  border-radius: 10px;
+  background: none;
+  border: 0.5px solid var(--border2);
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.btn-edit {
+  flex: 2;
+  padding: 13px;
+  border-radius: 10px;
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.btn-delete {
+  padding: 13px;
+  border-radius: 10px;
+  background: rgba(239,68,68,0.1);
+  border: 0.5px solid rgba(239,68,68,0.3);
+  color: var(--red);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+/* ── トースト ── */
+#toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--s3);
+  border: 0.5px solid var(--border2);
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 13px;
+  color: var(--text);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  z-index: 999;
+  transition: transform 0.25s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── ユーザー名設定 ── */
+.username-banner {
+  background: rgba(240,165,0,0.08);
+  border: 0.5px solid rgba(240,165,0,0.25);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.username-banner input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  outline: none;
+}
+.username-banner button {
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+/* 共有タブ */
+.share-list { display: flex; flex-direction: column; gap: 10px; }
+.share-card {
+  background: var(--s2);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.share-card:active { transform: scale(0.98); }
+.share-card-thumb {
+  width: 60px;
+  height: 80px;
+  border-radius: 8px;
+  background: var(--s3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.share-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.share-card-body { flex: 1; min-width: 0; }
+.share-card-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+.share-card-distillery { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.share-card-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.share-rating { font-size: 13px; color: var(--accent); font-weight: 700; }
+.share-user {
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--s3);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<header class="app-header">
+  <div class="header-icon">🥃</div>
+  <div class="header-titles">
+    <div class="header-title">Whisky <span>Collection</span></div>
+    <div class="header-sub">MY WHISKY LOG</div>
+  </div>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">🌙</button>
+</header>
+
+<!-- タブバー -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('list')">コレクション</button>
+  <button class="tab-btn" onclick="switchTab('add')">追加</button>
+  <button class="tab-btn" onclick="switchTab('share')">みんな</button>
+</div>
+
+<!-- コレクションタブ -->
+<div id="tab-list" class="tab-content active">
+  <!-- フィルター -->
+  <div class="filter-row" id="status-filter">
+    <div class="chip active" onclick="setFilter('status','all',this)">すべて</div>
+    <div class="chip" onclick="setFilter('status','在庫あり',this)">在庫あり</div>
+    <div class="chip" onclick="setFilter('status','飲み切り',this)">飲み切り</div>
+    <div class="chip" onclick="setFilter('status','ウィッシュリスト',this)">ウィッシュリスト</div>
+  </div>
+  <div class="filter-row" id="region-filter">
+    <div class="chip active" onclick="setFilter('region','all',this)">全地域</div>
+    <div class="chip" onclick="setFilter('region','スコットランド',this)">🏴 スコットランド</div>
+    <div class="chip" onclick="setFilter('region','日本',this)">🇯🇵 日本</div>
+    <div class="chip" onclick="setFilter('region','アイルランド',this)">🇮🇪 アイルランド</div>
+    <div class="chip" onclick="setFilter('region','アメリカ',this)">🇺🇸 アメリカ</div>
+    <div class="chip" onclick="setFilter('region','カナダ',this)">🇨🇦 カナダ</div>
+    <div class="chip" onclick="setFilter('region','その他',this)">🌍 その他</div>
+  </div>
+  <div id="list-container">
+    <div class="loading-dots">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 追加タブ -->
+<div id="tab-add" class="tab-content">
+  <!-- ユーザー名バナー -->
+  <div class="username-banner" id="username-banner">
+    <span style="font-size:14px;">👤</span>
+    <input type="text" id="username-input" placeholder="あなたの名前を入力" />
+    <button onclick="saveUsername()">保存</button>
+  </div>
+
+  <!-- カメラ撮影エリア -->
+  <div class="camera-area" id="camera-area" onclick="openCamera()">
+    <div class="camera-icon">📸</div>
+    <div class="camera-label">ボトルを撮影して自動入力</div>
+    <div class="camera-sub">タップしてカメラを起動 → AIがラベルを読み取ります</div>
+    <img id="camera-preview" class="camera-preview" alt="preview" />
+    <div class="scan-overlay" id="scan-overlay">
+      <div class="scan-spinner"></div>
+      <div class="scan-text">ラベルを読み取り中...</div>
+    </div>
+  </div>
+  <input type="file" id="photo-input" accept="image/*" capture="environment" onchange="onPhotoSelected(event)" />
+
+  <!-- スキャン結果バッジ -->
+  <div class="scan-result-badge" id="scan-result-badge">
+    <span>✓</span>
+    <span>AIが情報を読み取りました。確認・修正してから登録してください。</span>
+  </div>
+
+  <!-- フォーム: 基本情報 -->
+  <div class="form-card">
+    <div class="form-section-title">基本情報</div>
+    <div class="form-row">
+      <div class="form-label">ウイスキー名 <span class="req">必須</span></div>
+      <input class="form-input" id="f-name" type="text" placeholder="例：山崎 12年" />
+    </div>
+    <div class="form-row">
+      <div class="form-label">蒸留所</div>
+      <input class="form-input" id="f-distillery" type="text" placeholder="例：山崎蒸留所" />
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <div class="form-label">国・地域</div>
+        <select class="form-select" id="f-region">
+          <option value="">選択</option>
+          <option>スコットランド</option>
+          <option>日本</option>
+          <option>アイルランド</option>
+          <option>アメリカ</option>
+          <option>カナダ</option>
+          <option>その他</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-label">タイプ</div>
+        <select class="form-select" id="f-type">
+          <option value="">選択</option>
+          <option>シングルモルト</option>
+          <option>ブレンデッド</option>
+          <option>シングルグレーン</option>
+          <option>バーボン</option>
+          <option>ライウイスキー</option>
+          <option>その他</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row">
+        <div class="form-label">熟成年数</div>
+        <input class="form-input" id="f-age" type="number" placeholder="12" min="0" max="60" />
+      </div>
+      <div class="form-row">
+        <div class="form-label">アルコール度数 (%)</div>
+        <input class="form-input" id="f-abv" type="number" placeholder="43" min="0" max="100" step="0.1" />
+      </div>
+    </div>
+  </div>
+
+  <!-- フォーム: 評価 -->
+  <div class="form-card">
+    <div class="form-section-title">評価</div>
+    <div class="form-row">
+      <div class="form-label">総合評価</div>
+      <div class="rating-selector" id="rating-selector">
+        <div class="rating-opt" onclick="setRating('★1',this)">★1</div>
+        <div class="rating-opt" onclick="setRating('★2',this)">★2</div>
+        <div class="rating-opt" onclick="setRating('★3',this)">★3</div>
+        <div class="rating-opt" onclick="setRating('★4',this)">★4</div>
+        <div class="rating-opt" onclick="setRating('★5',this)">★5</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- フォーム: テイスティングノート -->
+  <div class="form-card">
+    <div class="form-section-title">テイスティングノート</div>
+    <div class="form-row">
+      <div class="form-label">香り</div>
+      <textarea class="form-textarea" id="f-aroma" placeholder="例：バニラ、蜂蜜、わずかにスモーキー"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-label">味</div>
+      <textarea class="form-textarea" id="f-taste" placeholder="例：甘く滑らか、フルーティーで豊か"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-label">フィニッシュ</div>
+      <textarea class="form-textarea" id="f-finish" placeholder="例：長く温かい余韻、オーク"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-label">メモ</div>
+      <textarea class="form-textarea" id="f-memo" placeholder="購入場所、飲んだ機会など自由に"></textarea>
+    </div>
+  </div>
+
+  <!-- フォーム: 購入情報 -->
+  <div class="form-card">
+    <div class="form-section-title">購入情報</div>
+    <div class="form-grid">
+      <div class="form-row">
+        <div class="form-label">価格 (円)</div>
+        <input class="form-input" id="f-price" type="number" placeholder="6000" min="0" />
+      </div>
+      <div class="form-row">
+        <div class="form-label">購入日</div>
+        <input class="form-input" id="f-date" type="date" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">ステータス</div>
+      <select class="form-select" id="f-status">
+        <option value="">選択</option>
+        <option>在庫あり</option>
+        <option>飲み切り</option>
+        <option>ウィッシュリスト</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-label">画像URL（任意）</div>
+      <input class="form-input" id="f-imgurl" type="url" placeholder="https://..." />
+    </div>
+  </div>
+
+  <button class="btn-submit" id="submit-btn" onclick="submitForm()">🥃 登録する</button>
+  <button class="btn-reset" onclick="resetForm()">リセット</button>
+</div>
+
+<!-- みんなタブ -->
+<div id="tab-share" class="tab-content">
+  <div style="font-size:12px; color:var(--muted); margin-bottom:14px;">
+    このアプリを使っているみんなのコレクション
+  </div>
+  <div id="share-container">
+    <div class="loading-dots">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 詳細モーダル -->
+<div id="modal-overlay" onclick="onModalOverlayClick(event)">
+  <div class="modal-sheet" id="modal-sheet">
+    <div class="modal-handle-wrap"><div class="modal-handle"></div></div>
+    <div id="modal-img-area"></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn-close" onclick="closeModal()">閉じる</button>
+      <button class="btn-edit" id="modal-edit-btn" onclick="editEntry()">編集</button>
+      <button class="btn-delete" id="modal-delete-btn" onclick="deleteEntry()">削除</button>
+    </div>
+  </div>
+</div>
+
+<!-- トースト -->
+<div id="toast">
+  <span id="toast-icon">✓</span>
+  <span id="toast-msg"></span>
+</div>
+
+<script>
+// ── 設定 ──────────────────────────────────────────────────────────────────
+const WORKER_URL = 'https://whisky-proxy.33322666666mm.workers.dev';
+const DB_ID = '330a695f-8e88-80b8-9b85-c60dff80f56d';
+
+// ── 状態 ──────────────────────────────────────────────────────────────────
+let allEntries = [];
+let currentFilter = { status: 'all', region: 'all' };
+let selectedRating = '';
+let currentModalId = null;
+let editingId = null;
+
+// ── 初期化 ────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  initUsername();
+  loadEntries();
+});
+
+// ── テーマ ────────────────────────────────────────────────────────────────
+function initTheme() {
+  const saved = localStorage.getItem('whisky_theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  updateThemeBtn();
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const isDark = current === 'dark' || (!current && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const next = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('whisky_theme', next);
+  updateThemeBtn();
+}
+
+function updateThemeBtn() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const isDark = current === 'dark' || (!current && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.getElementById('theme-btn').textContent = isDark ? '☀️' : '🌙';
+}
+
+// ── ユーザー名 ────────────────────────────────────────────────────────────
+function initUsername() {
+  const saved = localStorage.getItem('whisky_username');
+  if (saved) {
+    document.getElementById('username-input').value = saved;
+    document.getElementById('username-banner').style.background = 'rgba(34,197,94,0.06)';
+    document.getElementById('username-banner').style.borderColor = 'rgba(34,197,94,0.2)';
+  }
+}
+
+function saveUsername() {
+  const val = document.getElementById('username-input').value.trim();
+  if (!val) { showToast('名前を入力してください', '⚠️'); return; }
+  localStorage.setItem('whisky_username', val);
+  showToast(`「${val}」として登録します`, '✓');
+}
+
+function getUsername() {
+  return localStorage.getItem('whisky_username') || '';
+}
+
+// ── タブ切り替え ──────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  const tabs = ['list', 'add', 'share'];
+  document.querySelectorAll('.tab-btn')[tabs.indexOf(tab)].classList.add('active');
+  if (tab === 'list') renderList();
+  if (tab === 'share') renderShare();
+}
+
+// ── API ───────────────────────────────────────────────────────────────────
+async function notionAPI(path, method = 'GET', body = null) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${WORKER_URL}/${path}`, opts);
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch(e) { throw new Error('Parse error: ' + text.slice(0, 100)); }
+  if (data.object === 'error') throw new Error(data.message || JSON.stringify(data));
+  return data;
+}
+
+// ── エントリー取得 ────────────────────────────────────────────────────────
+async function loadEntries() {
+  try {
+    const data = await notionAPI(`databases/${DB_ID}/query`, 'POST', {
+      page_size: 100,
+      sorts: [{ timestamp: 'created_time', direction: 'descending' }]
+    });
+    allEntries = data.results.map(parseEntry);
+    renderList();
+  } catch(e) {
+    console.error(e);
+    document.getElementById('list-container').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-title">データ取得に失敗しました</div>
+        <div class="empty-sub">${e.message}</div>
+      </div>`;
+  }
+}
+
+function parseEntry(page) {
+  const p = page.properties;
+  const getText = k => p[k]?.rich_text?.[0]?.plain_text || '';
+  const getTitle = k => p[k]?.title?.[0]?.plain_text || '';
+  const getSelect = k => p[k]?.select?.name || '';
+  const getNum = k => p[k]?.number ?? null;
+  const getDate = k => p[k]?.date?.start || '';
+  const getUrl = k => p[k]?.url || '';
+  return {
+    id: page.id,
+    createdTime: page.created_time,
+    name: getTitle('名前'),
+    distillery: getText('蒸留所'),
+    region: getSelect('国・地域'),
+    type: getSelect('タイプ'),
+    age: getNum('年数'),
+    abv: getNum('アルコール度数'),
+    rating: getSelect('評価'),
+    aroma: getText('香り'),
+    taste: getText('味'),
+    finish: getText('フィニッシュ'),
+    memo: getText('メモ'),
+    price: getNum('価格'),
+    date: getDate('購入日'),
+    status: getSelect('ステータス'),
+    author: getText('登録者'),
+    imgUrl: getUrl('画像URL'),
+  };
+}
+
+// ── フィルター ────────────────────────────────────────────────────────────
+function setFilter(type, val, el) {
+  currentFilter[type] = val;
+  const groupId = type === 'status' ? 'status-filter' : 'region-filter';
+  document.querySelectorAll(`#${groupId} .chip`).forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderList();
+}
+
+function getFilteredEntries() {
+  return allEntries.filter(e => {
+    if (currentFilter.status !== 'all' && e.status !== currentFilter.status) return false;
+    if (currentFilter.region !== 'all' && e.region !== currentFilter.region) return false;
+    return true;
+  });
+}
+
+// ── リスト描画 ────────────────────────────────────────────────────────────
+function renderList() {
+  const container = document.getElementById('list-container');
+  const entries = getFilteredEntries();
+
+  if (entries.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🥃</div>
+        <div class="empty-title">まだ登録がありません</div>
+        <div class="empty-sub">「追加」タブからウイスキーを登録しましょう</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = `<div class="card-grid">${entries.map(renderCard).join('')}</div>`;
+}
+
+function regionEmoji(region) {
+  const map = { 'スコットランド':'🏴', '日本':'🇯🇵', 'アイルランド':'🇮🇪', 'アメリカ':'🇺🇸', 'カナダ':'🇨🇦', 'その他':'🌍' };
+  return map[region] || '';
+}
+
+function statusTagClass(status) {
+  if (status === '在庫あり') return 'status-stock';
+  if (status === '飲み切り') return 'status-empty';
+  if (status === 'ウィッシュリスト') return 'status-wish';
+  return '';
+}
+
+function renderCard(e) {
+  const imgHtml = e.imgUrl
+    ? `<img src="${e.imgUrl}" alt="${e.name}" onerror="this.style.display='none'" />`
+    : '';
+  const imgArea = e.imgUrl
+    ? `<div class="card-img">${imgHtml}</div>`
+    : `<div class="card-img-placeholder">🥃</div>`;
+
+  const statusTag = e.status
+    ? `<span class="tag ${statusTagClass(e.status)}">${e.status}</span>`
+    : '';
+  const regionTag = e.region
+    ? `<span class="tag region">${regionEmoji(e.region)} ${e.region}</span>`
+    : '';
+
+  return `
+    <div class="whisky-card" onclick="openModal('${e.id}')">
+      ${imgArea}
+      <div class="card-body">
+        <div class="card-name">${e.name}</div>
+        ${e.distillery ? `<div class="card-distillery">${e.distillery}</div>` : ''}
+        <div class="card-meta">
+          <div class="card-rating">${e.rating || ''}</div>
+        </div>
+        <div class="card-tags" style="margin-top:6px;">
+          ${regionTag}${statusTag}
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── 共有タブ ──────────────────────────────────────────────────────────────
+async function renderShare() {
+  const container = document.getElementById('share-container');
+  container.innerHTML = `<div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  try {
+    await loadEntries();
+    const sorted = [...allEntries].sort((a, b) => {
+      const rMap = { '★5': 5, '★4': 4, '★3': 3, '★2': 2, '★1': 1 };
+      return (rMap[b.rating] || 0) - (rMap[a.rating] || 0);
+    });
+
+    if (sorted.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">🥃</div><div class="empty-title">まだ登録がありません</div></div>`;
+      return;
+    }
+
+    container.innerHTML = `<div class="share-list">${sorted.map(e => `
+      <div class="share-card" onclick="openModal('${e.id}')">
+        <div class="share-card-thumb">
+          ${e.imgUrl ? `<img src="${e.imgUrl}" alt="${e.name}" onerror="this.innerHTML='🥃'" />` : '🥃'}
+        </div>
+        <div class="share-card-body">
+          <div class="share-card-name">${e.name}</div>
+          ${e.distillery ? `<div class="share-card-distillery">${e.distillery}</div>` : ''}
+          <div class="share-card-meta">
+            ${e.rating ? `<span class="share-rating">${e.rating}</span>` : ''}
+            ${e.region ? `<span class="tag region">${regionEmoji(e.region)} ${e.region}</span>` : ''}
+            ${e.author ? `<span class="share-user">👤 ${e.author}</span>` : ''}
+          </div>
+          ${e.aroma ? `<div style="font-size:11px;color:var(--muted);margin-top:5px;line-height:1.5;">🌸 ${e.aroma.slice(0,50)}${e.aroma.length>50?'…':''}</div>` : ''}
+        </div>
+      </div>`).join('')}</div>`;
+  } catch(e) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">取得エラー</div></div>`;
+  }
+}
+
+// ── モーダル ──────────────────────────────────────────────────────────────
+function openModal(id) {
+  const e = allEntries.find(x => x.id === id);
+  if (!e) return;
+  currentModalId = id;
+
+  // 画像エリア
+  const imgArea = document.getElementById('modal-img-area');
+  if (e.imgUrl) {
+    imgArea.innerHTML = `<div class="modal-img"><img src="${e.imgUrl}" alt="${e.name}" onerror="this.parentElement.innerHTML='<div class=modal-img-placeholder>🥃</div>'" /></div>`;
+  } else {
+    imgArea.innerHTML = `<div class="modal-img-placeholder">🥃</div>`;
+  }
+
+  // ボディ
+  const specRows = [
+    e.region && ['国・地域', `${regionEmoji(e.region)} ${e.region}`],
+    e.type && ['タイプ', e.type],
+    e.age !== null && e.age !== undefined && ['熟成年数', `${e.age}年`],
+    e.abv !== null && e.abv !== undefined && ['アルコール度数', `${e.abv}%`],
+    e.price && ['価格', `¥${e.price.toLocaleString()}`],
+    e.date && ['購入日', e.date.replace(/-/g, '/')],
+    e.status && ['ステータス', e.status],
+    e.author && ['登録者', `👤 ${e.author}`],
+  ].filter(Boolean);
+
+  document.getElementById('modal-body').innerHTML = `
+    ${e.rating ? `<div class="modal-rating">${e.rating}</div>` : ''}
+    <div class="modal-name">${e.name}</div>
+    ${e.distillery ? `<div class="modal-distillery">${e.distillery}</div>` : ''}
+    ${specRows.length > 0 ? `<div class="modal-chips">${specRows.map(([label, val]) => `<span class="modal-chip">${label}: ${val}</span>`).join('')}</div>` : ''}
+    ${(e.aroma || e.taste || e.finish) ? `
+      <div class="modal-section">
+        <div class="modal-section-title">テイスティングノート</div>
+        ${e.aroma ? `<div style="margin-bottom:10px;"><div style="font-size:11px;color:var(--muted);margin-bottom:5px;">🌸 香り</div><div class="modal-note-text">${e.aroma}</div></div>` : ''}
+        ${e.taste ? `<div style="margin-bottom:10px;"><div style="font-size:11px;color:var(--muted);margin-bottom:5px;">👅 味</div><div class="modal-note-text">${e.taste}</div></div>` : ''}
+        ${e.finish ? `<div style="margin-bottom:10px;"><div style="font-size:11px;color:var(--muted);margin-bottom:5px;">✨ フィニッシュ</div><div class="modal-note-text">${e.finish}</div></div>` : ''}
+      </div>
+    ` : ''}
+    ${e.memo ? `<div class="modal-section"><div class="modal-section-title">メモ</div><div class="modal-note-text">${e.memo}</div></div>` : ''}
+  `;
+
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+  currentModalId = null;
+}
+
+function onModalOverlayClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+function editEntry() {
+  const e = allEntries.find(x => x.id === currentModalId);
+  if (!e) return;
+  closeModal();
+  switchTab('add');
+
+  // フォームに値をセット
+  editingId = e.id;
+  document.getElementById('f-name').value = e.name;
+  document.getElementById('f-distillery').value = e.distillery;
+  document.getElementById('f-region').value = e.region;
+  document.getElementById('f-type').value = e.type;
+  document.getElementById('f-age').value = e.age ?? '';
+  document.getElementById('f-abv').value = e.abv ?? '';
+  document.getElementById('f-aroma').value = e.aroma;
+  document.getElementById('f-taste').value = e.taste;
+  document.getElementById('f-finish').value = e.finish;
+  document.getElementById('f-memo').value = e.memo;
+  document.getElementById('f-price').value = e.price ?? '';
+  document.getElementById('f-date').value = e.date;
+  document.getElementById('f-status').value = e.status;
+  document.getElementById('f-imgurl').value = e.imgUrl;
+
+  if (e.rating) {
+    selectedRating = e.rating;
+    document.querySelectorAll('.rating-opt').forEach(opt => {
+      opt.classList.toggle('selected', opt.textContent === e.rating);
+    });
+  }
+
+  document.getElementById('submit-btn').textContent = '🥃 更新する';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function deleteEntry() {
+  if (!currentModalId) return;
+  const e = allEntries.find(x => x.id === currentModalId);
+  if (!confirm(`「${e?.name}」を削除しますか？`)) return;
+
+  try {
+    await notionAPI(`pages/${currentModalId}`, 'PATCH', { archived: true });
+    closeModal();
+    showToast('削除しました', '🗑️');
+    await loadEntries();
+    renderList();
+  } catch(err) {
+    showToast('削除に失敗しました', '✕');
+  }
+}
+
+// ── カメラ・写真認識 ───────────────────────────────────────────────────────
+function openCamera() {
+  document.getElementById('photo-input').click();
+}
+
+function onPhotoSelected(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // プレビュー表示
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target.result;
+    const preview = document.getElementById('camera-preview');
+    preview.src = dataUrl;
+    preview.style.display = 'block';
+
+    // スキャン開始
+    const overlay = document.getElementById('scan-overlay');
+    overlay.classList.add('visible');
+    document.getElementById('camera-area').classList.add('scanning');
+
+    try {
+      const base64 = dataUrl.split(',')[1];
+      const mediaType = file.type || 'image/jpeg';
+
+      const res = await fetch(`${WORKER_URL}/scan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64, mediaType }),
+      });
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error);
+
+      applyScannedData(data);
+      document.getElementById('scan-result-badge').classList.add('visible');
+      showToast('ラベルを読み取りました！', '✓');
+    } catch(err) {
+      showToast('読み取りに失敗しました: ' + err.message, '✕');
+    } finally {
+      overlay.classList.remove('visible');
+      document.getElementById('camera-area').classList.remove('scanning');
+    }
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+function applyScannedData(data) {
+  if (data.name) document.getElementById('f-name').value = data.name;
+  if (data.distillery) document.getElementById('f-distillery').value = data.distillery;
+  if (data.region) document.getElementById('f-region').value = data.region;
+  if (data.type) document.getElementById('f-type').value = data.type;
+  if (data.age !== null && data.age !== undefined) document.getElementById('f-age').value = data.age;
+  if (data.abv !== null && data.abv !== undefined) document.getElementById('f-abv').value = data.abv;
+}
+
+// ── 評価セレクター ────────────────────────────────────────────────────────
+function setRating(val, el) {
+  selectedRating = val;
+  document.querySelectorAll('.rating-opt').forEach(opt => opt.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ── フォーム送信 ──────────────────────────────────────────────────────────
+async function submitForm() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { showToast('ウイスキー名は必須です', '⚠️'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+
+  const properties = {
+    '名前': { title: [{ text: { content: name } }] },
+  };
+
+  const distillery = document.getElementById('f-distillery').value.trim();
+  if (distillery) properties['蒸留所'] = { rich_text: [{ text: { content: distillery } }] };
+
+  const region = document.getElementById('f-region').value;
+  if (region) properties['国・地域'] = { select: { name: region } };
+
+  const type = document.getElementById('f-type').value;
+  if (type) properties['タイプ'] = { select: { name: type } };
+
+  const age = parseFloat(document.getElementById('f-age').value);
+  if (!isNaN(age)) properties['年数'] = { number: age };
+
+  const abv = parseFloat(document.getElementById('f-abv').value);
+  if (!isNaN(abv)) properties['アルコール度数'] = { number: abv };
+
+  if (selectedRating) properties['評価'] = { select: { name: selectedRating } };
+
+  const aroma = document.getElementById('f-aroma').value.trim();
+  if (aroma) properties['香り'] = { rich_text: [{ text: { content: aroma } }] };
+
+  const taste = document.getElementById('f-taste').value.trim();
+  if (taste) properties['味'] = { rich_text: [{ text: { content: taste } }] };
+
+  const finish = document.getElementById('f-finish').value.trim();
+  if (finish) properties['フィニッシュ'] = { rich_text: [{ text: { content: finish } }] };
+
+  const memo = document.getElementById('f-memo').value.trim();
+  if (memo) properties['メモ'] = { rich_text: [{ text: { content: memo } }] };
+
+  const price = parseFloat(document.getElementById('f-price').value);
+  if (!isNaN(price)) properties['価格'] = { number: price };
+
+  const date = document.getElementById('f-date').value;
+  if (date) properties['購入日'] = { date: { start: date } };
+
+  const status = document.getElementById('f-status').value;
+  if (status) properties['ステータス'] = { select: { name: status } };
+
+  const author = getUsername();
+  if (author) properties['登録者'] = { rich_text: [{ text: { content: author } }] };
+
+  const imgUrl = document.getElementById('f-imgurl').value.trim();
+  if (imgUrl) properties['画像URL'] = { url: imgUrl };
+
+  try {
+    if (editingId) {
+      await notionAPI(`pages/${editingId}`, 'PATCH', { properties });
+      showToast('更新しました！', '✓');
+      editingId = null;
+    } else {
+      await notionAPI('pages', 'POST', {
+        parent: { database_id: DB_ID },
+        properties,
+      });
+      showToast('登録しました！', '🥃');
+    }
+    resetForm();
+    await loadEntries();
+    switchTab('list');
+  } catch(e) {
+    showToast('送信に失敗しました: ' + e.message, '✕');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🥃 登録する';
+  }
+}
+
+function resetForm() {
+  ['f-name','f-distillery','f-age','f-abv','f-aroma','f-taste','f-finish','f-memo','f-price','f-date','f-imgurl'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f-region').value = '';
+  document.getElementById('f-type').value = '';
+  document.getElementById('f-status').value = '';
+  selectedRating = '';
+  editingId = null;
+  document.querySelectorAll('.rating-opt').forEach(opt => opt.classList.remove('selected'));
+  document.getElementById('camera-preview').style.display = 'none';
+  document.getElementById('scan-result-badge').classList.remove('visible');
+  document.getElementById('submit-btn').textContent = '🥃 登録する';
+}
+
+// ── トースト ──────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, icon = '✓') {
+  document.getElementById('toast-msg').textContent = msg;
+  document.getElementById('toast-icon').textContent = icon;
+  const el = document.getElementById('toast');
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
