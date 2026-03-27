@@ -8,19 +8,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Mono:wght@400;500&display=swap');
 
 :root {
-  --bg: #16100a;
-  --s1: #0e0a06;
-  --s2: #1c1408;
-  --s3: #221a0e;
-  --border: #2a1e10;
-  --border2: #3a2a18;
-  --text: #f0e8d8;
-  --muted: #8a6840;
-  --accent: #e8c880;
-  --accent2: #c8a860;
-  --gold-dark: #7a5020;
-  --gold-deeper: #5a3a1a;
-  --gold-faint: #2a1e10;
+  --bg: #f4e8cc;
+  --s1: #ead8b0;
+  --s2: #e4d0a0;
+  --s3: #dcc890;
+  --border: #c8a060;
+  --border2: #b89050;
+  --text: #1a0e04;
+  --muted: #6a4820;
+  --accent: #6a3c0e;
+  --accent2: #8a5220;
+  --gold-dark: #5a3010;
+  --gold-deeper: #3a2008;
+  --gold-faint: #e8d8b0;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -139,13 +139,14 @@ body {
 .whisky-card {
   display: flex;
   align-items: stretch;
-  background: linear-gradient(135deg, rgba(90,58,26,.12), rgba(14,10,6,.5));
-  border: 1px solid #2a1e10;
+  background: linear-gradient(135deg, rgba(255,248,232,.9), rgba(232,212,168,.8));
+  border: 1px solid #c8a060;
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
   margin-bottom: 8px;
   min-height: 90px;
+  box-shadow: 0 1px 4px rgba(90,56,16,.1);
 }
 .whisky-card:active { opacity: 0.85; }
 
@@ -161,19 +162,19 @@ body {
   font-family: 'Cormorant Garamond', serif;
   font-style: italic;
   font-size: 16px;
-  color: #e8c880;
+  color: #3a2008;
   line-height: 1.2;
 }
 .card-distillery {
   font-size: 10px;
-  color: #5a3a1a;
+  color: #8a5820;
   font-family: 'DM Mono', monospace;
   letter-spacing: .05em;
   text-transform: uppercase;
 }
 .card-rating {
   font-size: 13px;
-  color: #c8a860;
+  color: #7a4c14;
   letter-spacing: 2px;
 }
 .card-tags {
@@ -186,20 +187,20 @@ body {
   font-size: 9px;
   padding: 2px 7px;
   border-radius: 10px;
-  border: 1px solid #2a1e10;
-  color: #5a3a1a;
+  border: 1px solid #c8a060;
+  color: #7a5020;
   font-family: 'DM Mono', monospace;
 }
-.card-tag.region { color: #7a5020; border-color: #3a2a14; }
-.card-tag.status-stock { color: #4a7a30; border-color: #2a4a18; }
-.card-tag.status-empty { color: #7a3020; border-color: #4a1e10; }
-.card-tag.status-wish { color: #4a5a7a; border-color: #2a3a4a; }
+.card-tag.region { color: #6a7a30; border-color: #b0b860; }
+.card-tag.status-stock { color: #3a6a20; border-color: #90b870; }
+.card-tag.status-empty { color: #8a3820; border-color: #c88060; }
+.card-tag.status-wish { color: #3a5a8a; border-color: #80a0c8; }
 
 .card-img-wrap {
   width: 72px;
   flex-shrink: 0;
-  background: #0a0806;
-  border-left: 1px solid #2a1e10;
+  background: #e4d0a0;
+  border-left: 1px solid #c8a060;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -240,7 +241,7 @@ body {
 
 /* ── 追加フォーム ── */
 .camera-area {
-  background: #0a0806;
+  background: #ede0bc;
   border: 1.5px dashed var(--border2);
   border-radius: 8px;
   padding: 24px 16px;
@@ -286,7 +287,7 @@ body {
 .scan-spinner {
   width: 32px;
   height: 32px;
-  border: 2px solid rgba(232,200,128,0.2);
+  border: 2px solid rgba(90,56,16,0.15);
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -318,7 +319,7 @@ body {
 .scan-result-badge.visible { display: flex; }
 
 .form-card {
-  background: linear-gradient(135deg, rgba(90,58,26,.08), rgba(14,10,6,.4));
+  background: linear-gradient(135deg, rgba(255,248,235,.95), rgba(232,212,168,.6));
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 16px;
@@ -355,16 +356,16 @@ body {
 .req { color: var(--gold-dark); }
 .form-input, .form-select, .form-textarea {
   width: 100%;
-  background: #0a0806;
+  background: #fdf6e8;
   border: 1px solid var(--border);
   border-radius: 6px;
-  color: var(--accent);
+  color: var(--text);
   font-family: 'Noto Sans JP', sans-serif;
   font-size: 14px;
   padding: 10px 12px;
   transition: border-color 0.15s;
 }
-.form-input::placeholder, .form-textarea::placeholder { color: var(--border2); }
+.form-input::placeholder, .form-textarea::placeholder { color: #b89060; }
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   outline: none;
   border-color: var(--gold-dark);
@@ -372,13 +373,13 @@ body {
 }
 .form-select {
   appearance: none;
-  background-color: #0a0806;
+  background-color: #fdf6e8;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a5020' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 32px;
 }
-.form-select option { background: #0a0806; color: var(--accent); }
+.form-select option { background: #fdf6e8; color: var(--text); }
 .form-textarea {
   resize: none;
   line-height: 1.6;
@@ -420,7 +421,7 @@ body {
   text-align: center;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #0a0806;
+  background: #fdf6e8;
   cursor: pointer;
   font-size: 12px;
   font-family: 'DM Mono', monospace;
@@ -535,7 +536,7 @@ body {
   width: 100%;
   max-height: 220px;
   object-fit: cover;
-  background: #0a0806;
+  background: #e4d0a0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -607,7 +608,7 @@ body {
   line-height: 1.7;
   color: var(--gold-dark);
   font-style: italic;
-  background: rgba(10,8,6,0.6);
+  background: rgba(232,212,168,0.5);
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 10px 12px;
@@ -683,15 +684,15 @@ body {
 .btn-delete {
   padding: 13px;
   background: transparent;
-  border: 1px solid #3a1a1a;
+  border: 1px solid #d08080;
   border-radius: 6px;
-  color: #5a3030;
+  color: #a05050;
   font-size: 12px;
   font-family: 'DM Mono', monospace;
   cursor: pointer;
   transition: border-color 0.15s;
 }
-.btn-delete:hover { border-color: #7a4040; color: #9a5050; }
+.btn-delete:hover { border-color: #c05050; color: #c06060; }
 
 /* ── トースト ── */
 #toast {
@@ -707,7 +708,7 @@ body {
   font-family: 'DM Mono', monospace;
   letter-spacing: 0.08em;
   color: var(--accent);
-  box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+  box-shadow: 0 4px 24px rgba(90,56,16,0.25);
   z-index: 999;
   transition: transform 0.25s ease;
   white-space: nowrap;
