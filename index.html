@@ -847,6 +847,57 @@ body {
   margin-bottom: 14px;
   text-align: center;
 }
+
+/* ── テイスティングノートチップ ── */
+.note-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.note-chip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid #2a1e10;
+  background: #0a0806;
+  color: #5a3a1a;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.note-chip.selected {
+  background: rgba(232,200,128,0.12);
+  border-color: #7a5020;
+  color: #e8c880;
+}
+
+/* ── モーダルノートチップ ── */
+.modal-note-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+.modal-note-chip {
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid #3a2a18;
+  background: rgba(232,200,128,0.08);
+  color: #8a6840;
+  font-size: 11px;
+}
+
+/* ── form-row flex (飲み方・単価) ── */
+.form-row-flex {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.form-row-flex:last-child { margin-bottom: 0; }
+.form-half {
+  flex: 1;
+}
 </style>
 </head>
 <body>
@@ -986,16 +1037,63 @@ body {
   <div class="form-card">
     <div class="form-section-title">Tasting Notes</div>
     <div class="form-row">
-      <div class="form-label">香り</div>
-      <textarea class="form-textarea" id="f-aroma" placeholder="例：バニラ、蜂蜜、わずかにスモーキー"></textarea>
+      <div class="form-label">香り（複数選択可）</div>
+      <div class="note-chips" id="aroma-chips">
+        <div class="note-chip" data-note-type="aroma" data-val="フローラル" onclick="toggleNote('aroma','フローラル',this)">フローラル</div>
+        <div class="note-chip" data-note-type="aroma" data-val="フルーティ" onclick="toggleNote('aroma','フルーティ',this)">フルーティ</div>
+        <div class="note-chip" data-note-type="aroma" data-val="バニラ" onclick="toggleNote('aroma','バニラ',this)">バニラ</div>
+        <div class="note-chip" data-note-type="aroma" data-val="キャラメル" onclick="toggleNote('aroma','キャラメル',this)">キャラメル</div>
+        <div class="note-chip" data-note-type="aroma" data-val="ハチミツ" onclick="toggleNote('aroma','ハチミツ',this)">ハチミツ</div>
+        <div class="note-chip" data-note-type="aroma" data-val="スモーキー" onclick="toggleNote('aroma','スモーキー',this)">スモーキー</div>
+        <div class="note-chip" data-note-type="aroma" data-val="ピーティ" onclick="toggleNote('aroma','ピーティ',this)">ピーティ</div>
+        <div class="note-chip" data-note-type="aroma" data-val="スパイシー" onclick="toggleNote('aroma','スパイシー',this)">スパイシー</div>
+        <div class="note-chip" data-note-type="aroma" data-val="シェリー" onclick="toggleNote('aroma','シェリー',this)">シェリー</div>
+        <div class="note-chip" data-note-type="aroma" data-val="オーク" onclick="toggleNote('aroma','オーク',this)">オーク</div>
+        <div class="note-chip" data-note-type="aroma" data-val="ナッツ" onclick="toggleNote('aroma','ナッツ',this)">ナッツ</div>
+        <div class="note-chip" data-note-type="aroma" data-val="チョコレート" onclick="toggleNote('aroma','チョコレート',this)">チョコレート</div>
+        <div class="note-chip" data-note-type="aroma" data-val="シトラス" onclick="toggleNote('aroma','シトラス',this)">シトラス</div>
+        <div class="note-chip" data-note-type="aroma" data-val="ハーブ" onclick="toggleNote('aroma','ハーブ',this)">ハーブ</div>
+        <div class="note-chip" data-note-type="aroma" data-val="海塩" onclick="toggleNote('aroma','海塩',this)">海塩</div>
+        <div class="note-chip" data-note-type="aroma" data-val="麦芽" onclick="toggleNote('aroma','麦芽',this)">麦芽</div>
+      </div>
     </div>
     <div class="form-row">
-      <div class="form-label">味</div>
-      <textarea class="form-textarea" id="f-taste" placeholder="例：甘く滑らか、フルーティーで豊か"></textarea>
+      <div class="form-label">味（複数選択可）</div>
+      <div class="note-chips" id="taste-chips">
+        <div class="note-chip" data-note-type="taste" data-val="甘口" onclick="toggleNote('taste','甘口',this)">甘口</div>
+        <div class="note-chip" data-note-type="taste" data-val="辛口" onclick="toggleNote('taste','辛口',this)">辛口</div>
+        <div class="note-chip" data-note-type="taste" data-val="まろやか" onclick="toggleNote('taste','まろやか',this)">まろやか</div>
+        <div class="note-chip" data-note-type="taste" data-val="リッチ" onclick="toggleNote('taste','リッチ',this)">リッチ</div>
+        <div class="note-chip" data-note-type="taste" data-val="ライト" onclick="toggleNote('taste','ライト',this)">ライト</div>
+        <div class="note-chip" data-note-type="taste" data-val="フルーティ" onclick="toggleNote('taste','フルーティ',this)">フルーティ</div>
+        <div class="note-chip" data-note-type="taste" data-val="スモーキー" onclick="toggleNote('taste','スモーキー',this)">スモーキー</div>
+        <div class="note-chip" data-note-type="taste" data-val="スパイシー" onclick="toggleNote('taste','スパイシー',this)">スパイシー</div>
+        <div class="note-chip" data-note-type="taste" data-val="バニラ" onclick="toggleNote('taste','バニラ',this)">バニラ</div>
+        <div class="note-chip" data-note-type="taste" data-val="キャラメル" onclick="toggleNote('taste','キャラメル',this)">キャラメル</div>
+        <div class="note-chip" data-note-type="taste" data-val="ドライフルーツ" onclick="toggleNote('taste','ドライフルーツ',this)">ドライフルーツ</div>
+        <div class="note-chip" data-note-type="taste" data-val="ナッツ" onclick="toggleNote('taste','ナッツ',this)">ナッツ</div>
+        <div class="note-chip" data-note-type="taste" data-val="チョコレート" onclick="toggleNote('taste','チョコレート',this)">チョコレート</div>
+        <div class="note-chip" data-note-type="taste" data-val="シトラス" onclick="toggleNote('taste','シトラス',this)">シトラス</div>
+        <div class="note-chip" data-note-type="taste" data-val="ミネラル" onclick="toggleNote('taste','ミネラル',this)">ミネラル</div>
+        <div class="note-chip" data-note-type="taste" data-val="オーキー" onclick="toggleNote('taste','オーキー',this)">オーキー</div>
+      </div>
     </div>
     <div class="form-row">
-      <div class="form-label">フィニッシュ</div>
-      <textarea class="form-textarea" id="f-finish" placeholder="例：長く温かい余韻、オーク"></textarea>
+      <div class="form-label">フィニッシュ（複数選択可）</div>
+      <div class="note-chips" id="finish-chips">
+        <div class="note-chip" data-note-type="finish" data-val="長い" onclick="toggleNote('finish','長い',this)">長い</div>
+        <div class="note-chip" data-note-type="finish" data-val="短い" onclick="toggleNote('finish','短い',this)">短い</div>
+        <div class="note-chip" data-note-type="finish" data-val="甘い" onclick="toggleNote('finish','甘い',this)">甘い</div>
+        <div class="note-chip" data-note-type="finish" data-val="スパイシー" onclick="toggleNote('finish','スパイシー',this)">スパイシー</div>
+        <div class="note-chip" data-note-type="finish" data-val="スモーキー" onclick="toggleNote('finish','スモーキー',this)">スモーキー</div>
+        <div class="note-chip" data-note-type="finish" data-val="ウォーム" onclick="toggleNote('finish','ウォーム',this)">ウォーム</div>
+        <div class="note-chip" data-note-type="finish" data-val="ドライ" onclick="toggleNote('finish','ドライ',this)">ドライ</div>
+        <div class="note-chip" data-note-type="finish" data-val="フルーティ" onclick="toggleNote('finish','フルーティ',this)">フルーティ</div>
+        <div class="note-chip" data-note-type="finish" data-val="オーキー" onclick="toggleNote('finish','オーキー',this)">オーキー</div>
+        <div class="note-chip" data-note-type="finish" data-val="ビター" onclick="toggleNote('finish','ビター',this)">ビター</div>
+        <div class="note-chip" data-note-type="finish" data-val="なめらか" onclick="toggleNote('finish','なめらか',this)">なめらか</div>
+        <div class="note-chip" data-note-type="finish" data-val="ペッパリー" onclick="toggleNote('finish','ペッパリー',this)">ペッパリー</div>
+      </div>
     </div>
     <div class="form-row">
       <div class="form-label">メモ</div>
@@ -1046,6 +1144,26 @@ body {
       <input class="form-input" id="f-mapsurl" type="url" placeholder="https://maps.google.com/..." />
       <div class="form-label-desc">MapでURLを取得してここに貼付</div>
     </div>
+    <div class="form-row-flex">
+      <div class="form-half">
+        <div class="form-label">飲み方</div>
+        <select id="f-drinkstyle" class="form-select">
+          <option value="">選択してください</option>
+          <option value="ストレート">🥃 ストレート</option>
+          <option value="ロック">🧊 ロック</option>
+          <option value="ハイボール">🫧 ハイボール</option>
+          <option value="水割り">💧 水割り</option>
+          <option value="ソーダ割り">🫧 ソーダ割り</option>
+          <option value="トワイス・アップ">🌊 トワイス・アップ</option>
+          <option value="ボトルキープ">🍾 ボトルキープ</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+      <div class="form-half">
+        <div class="form-label">単価（円）</div>
+        <input id="f-unitprice" type="number" class="form-input" placeholder="1500" />
+      </div>
+    </div>
   </div>
 
   <button class="btn-submit" id="submit-btn" onclick="submitForm()">— 登録する —</button>
@@ -1093,6 +1211,9 @@ let currentFilter = { status: 'all', region: 'all' };
 let selectedRating = '';
 let currentModalId = null;
 let editingId = null;
+let selectedAroma = [];
+let selectedTaste = [];
+let selectedFinish = [];
 
 // ── 初期化 ────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
@@ -1170,6 +1291,7 @@ function parseEntry(page) {
   const getNum = k => p[k]?.number ?? null;
   const getDate = k => p[k]?.date?.start || '';
   const getUrl = k => p[k]?.url || '';
+  const getMultiSelect = k => p[k]?.multi_select?.map(x => x.name) || [];
   return {
     id: page.id,
     createdTime: page.created_time,
@@ -1180,9 +1302,9 @@ function parseEntry(page) {
     age: getNum('年数'),
     abv: getNum('アルコール度数'),
     rating: getSelect('評価'),
-    aroma: getText('香り'),
-    taste: getText('味'),
-    finish: getText('フィニッシュ'),
+    aroma: getMultiSelect('香り'),
+    taste: getMultiSelect('味'),
+    finish: getMultiSelect('フィニッシュ'),
     memo: getText('メモ'),
     price: getNum('価格'),
     date: getDate('購入日'),
@@ -1191,6 +1313,8 @@ function parseEntry(page) {
     imgUrl: getUrl('画像URL'),
     shopName: getText('店名'),
     mapsUrl: getUrl('マップURL'),
+    drinkStyle: getSelect('飲み方'),
+    unitPrice: getNum('単価'),
   };
 }
 
@@ -1259,8 +1383,9 @@ function renderCard(e) {
   const shopLine = e.shopName
     ? `<div class="card-shop">📍 ${e.shopName}</div>`
     : '';
-  const noteSnippet = e.aroma
-    ? `<div class="card-divider"></div><div class="card-note-snippet">${e.aroma.slice(0,50)}${e.aroma.length>50?'…':''}</div>`
+  const aromaText = Array.isArray(e.aroma) ? e.aroma.join(' / ') : (e.aroma || '');
+  const noteSnippet = aromaText
+    ? `<div class="card-divider"></div><div class="card-note-snippet">${aromaText.slice(0,50)}${aromaText.length>50?'…':''}</div>`
     : '';
 
   return `
@@ -1310,7 +1435,7 @@ async function renderShare() {
             ${e.region ? `<span class="tag region">${regionEmoji(e.region)} ${e.region}</span>` : ''}
             ${e.author ? `<span class="share-user">▸ ${e.author}</span>` : ''}
           </div>
-          ${e.aroma ? `<div style="font-size:11px;color:var(--gold-dark);margin-top:5px;line-height:1.5;font-style:italic;">🌸 ${e.aroma.slice(0,50)}${e.aroma.length>50?'…':''}</div>` : ''}
+          ${(Array.isArray(e.aroma) ? e.aroma.length > 0 : !!e.aroma) ? `<div style="font-size:11px;color:var(--gold-dark);margin-top:5px;line-height:1.5;font-style:italic;">🌸 ${(Array.isArray(e.aroma) ? e.aroma.join(' / ') : e.aroma).slice(0,50)}${(Array.isArray(e.aroma) ? e.aroma.join(' / ') : e.aroma).length>50?'…':''}</div>` : ''}
           ${e.shopName ? `<div style="font-size:10px;color:var(--gold-deeper);margin-top:4px;font-family:'DM Mono',monospace;letter-spacing:0.05em;">📍 ${e.shopName}</div>` : ''}
         </div>
       </div>`).join('')}</div>`;
@@ -1341,6 +1466,8 @@ function openModal(id) {
     e.date && ['購入日', e.date.replace(/-/g, '/')],
     e.status && ['Status', e.status],
     e.author && ['登録者', e.author],
+    e.drinkStyle && ['飲み方', e.drinkStyle],
+    (e.unitPrice !== null && e.unitPrice !== undefined) && ['単価', `¥${e.unitPrice.toLocaleString()}`],
   ].filter(Boolean);
 
   const shopSection = e.shopName ? `
@@ -1355,12 +1482,12 @@ function openModal(id) {
     ${e.distillery ? `<div class="modal-distillery">${e.distillery}</div>` : ''}
     <div class="modal-divider"></div>
     ${specRows.length > 0 ? `<div class="modal-chips">${specRows.map(([label, val]) => `<span class="modal-chip">${label}: ${val}</span>`).join('')}</div>` : ''}
-    ${(e.aroma || e.taste || e.finish) ? `
+    ${((Array.isArray(e.aroma) ? e.aroma.length > 0 : !!e.aroma) || (Array.isArray(e.taste) ? e.taste.length > 0 : !!e.taste) || (Array.isArray(e.finish) ? e.finish.length > 0 : !!e.finish)) ? `
       <div class="modal-section">
         <div class="modal-section-title">Tasting Notes</div>
-        ${e.aroma ? `<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--gold-deeper);font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">Nose</div><div class="modal-note-text">${e.aroma}</div></div>` : ''}
-        ${e.taste ? `<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--gold-deeper);font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">Palate</div><div class="modal-note-text">${e.taste}</div></div>` : ''}
-        ${e.finish ? `<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--gold-deeper);font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">Finish</div><div class="modal-note-text">${e.finish}</div></div>` : ''}
+        ${(Array.isArray(e.aroma) ? e.aroma.length > 0 : !!e.aroma) ? `<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--gold-deeper);font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">Nose</div><div class="modal-note-chips">${(Array.isArray(e.aroma) ? e.aroma : [e.aroma]).map(n => `<span class="modal-note-chip">${n}</span>`).join('')}</div></div>` : ''}
+        ${(Array.isArray(e.taste) ? e.taste.length > 0 : !!e.taste) ? `<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--gold-deeper);font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">Palate</div><div class="modal-note-chips">${(Array.isArray(e.taste) ? e.taste : [e.taste]).map(n => `<span class="modal-note-chip">${n}</span>`).join('')}</div></div>` : ''}
+        ${(Array.isArray(e.finish) ? e.finish.length > 0 : !!e.finish) ? `<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--gold-deeper);font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">Finish</div><div class="modal-note-chips">${(Array.isArray(e.finish) ? e.finish : [e.finish]).map(n => `<span class="modal-note-chip">${n}</span>`).join('')}</div></div>` : ''}
       </div>
     ` : ''}
     ${e.memo ? `<div class="modal-section"><div class="modal-section-title">Memo</div><div class="modal-note-text">${e.memo}</div></div>` : ''}
@@ -1392,9 +1519,6 @@ function editEntry() {
   document.getElementById('f-type').value = e.type;
   document.getElementById('f-age').value = e.age ?? '';
   document.getElementById('f-abv').value = e.abv ?? '';
-  document.getElementById('f-aroma').value = e.aroma;
-  document.getElementById('f-taste').value = e.taste;
-  document.getElementById('f-finish').value = e.finish;
   document.getElementById('f-memo').value = e.memo;
   document.getElementById('f-price').value = e.price ?? '';
   document.getElementById('f-date').value = e.date;
@@ -1402,6 +1526,15 @@ function editEntry() {
   document.getElementById('f-imgurl').value = e.imgUrl;
   document.getElementById('f-shopname').value = e.shopName;
   document.getElementById('f-mapsurl').value = e.mapsUrl;
+  document.getElementById('f-drinkstyle').value = e.drinkStyle || '';
+  document.getElementById('f-unitprice').value = e.unitPrice ?? '';
+
+  selectedAroma = [...(e.aroma || [])];
+  selectedTaste = [...(e.taste || [])];
+  selectedFinish = [...(e.finish || [])];
+  document.querySelectorAll('[data-note-type="aroma"]').forEach(c => c.classList.toggle('selected', selectedAroma.includes(c.dataset.val)));
+  document.querySelectorAll('[data-note-type="taste"]').forEach(c => c.classList.toggle('selected', selectedTaste.includes(c.dataset.val)));
+  document.querySelectorAll('[data-note-type="finish"]').forEach(c => c.classList.toggle('selected', selectedFinish.includes(c.dataset.val)));
 
   if (e.rating) {
     selectedRating = e.rating;
@@ -1486,6 +1619,15 @@ function applyScannedData(data) {
   if (data.abv !== null && data.abv !== undefined) document.getElementById('f-abv').value = data.abv;
 }
 
+// ── テイスティングノートチップ ────────────────────────────────────────────
+function toggleNote(type, val, el) {
+  const map = { aroma: selectedAroma, taste: selectedTaste, finish: selectedFinish };
+  const arr = map[type];
+  const idx = arr.indexOf(val);
+  if (idx >= 0) { arr.splice(idx, 1); el.classList.remove('selected'); }
+  else { arr.push(val); el.classList.add('selected'); }
+}
+
 // ── 評価セレクター ────────────────────────────────────────────────────────
 function setRating(val, el) {
   selectedRating = val;
@@ -1530,14 +1672,9 @@ async function submitForm() {
 
   if (selectedRating) properties['評価'] = { select: { name: selectedRating } };
 
-  const aroma = document.getElementById('f-aroma').value.trim();
-  if (aroma) properties['香り'] = { rich_text: [{ text: { content: aroma } }] };
-
-  const taste = document.getElementById('f-taste').value.trim();
-  if (taste) properties['味'] = { rich_text: [{ text: { content: taste } }] };
-
-  const finish = document.getElementById('f-finish').value.trim();
-  if (finish) properties['フィニッシュ'] = { rich_text: [{ text: { content: finish } }] };
+  if (selectedAroma.length) properties['香り'] = { multi_select: selectedAroma.map(n => ({ name: n })) };
+  if (selectedTaste.length) properties['味'] = { multi_select: selectedTaste.map(n => ({ name: n })) };
+  if (selectedFinish.length) properties['フィニッシュ'] = { multi_select: selectedFinish.map(n => ({ name: n })) };
 
   const memo = document.getElementById('f-memo').value.trim();
   if (memo) properties['メモ'] = { rich_text: [{ text: { content: memo } }] };
@@ -1563,6 +1700,12 @@ async function submitForm() {
   const mapsUrl = document.getElementById('f-mapsurl').value.trim();
   if (mapsUrl) properties['マップURL'] = { url: mapsUrl };
 
+  const drinkStyle = document.getElementById('f-drinkstyle').value;
+  if (drinkStyle) properties['飲み方'] = { select: { name: drinkStyle } };
+
+  const unitPrice = parseFloat(document.getElementById('f-unitprice').value);
+  if (!isNaN(unitPrice)) properties['単価'] = { number: unitPrice };
+
   try {
     if (editingId) {
       await notionAPI(`pages/${editingId}`, 'PATCH', { properties });
@@ -1587,15 +1730,21 @@ async function submitForm() {
 }
 
 function resetForm() {
-  ['f-name','f-distillery','f-age','f-abv','f-aroma','f-taste','f-finish','f-memo','f-price','f-date','f-imgurl','f-shopname','f-mapsurl'].forEach(id => {
+  ['f-name','f-distillery','f-age','f-abv','f-memo','f-price','f-date','f-imgurl','f-shopname','f-mapsurl'].forEach(id => {
     document.getElementById(id).value = '';
   });
   document.getElementById('f-region').value = '';
   document.getElementById('f-type').value = '';
   document.getElementById('f-status').value = '';
+  document.getElementById('f-drinkstyle').value = '';
+  document.getElementById('f-unitprice').value = '';
   selectedRating = '';
+  selectedAroma = [];
+  selectedTaste = [];
+  selectedFinish = [];
   editingId = null;
   document.querySelectorAll('.rating-opt').forEach(opt => opt.classList.remove('selected'));
+  document.querySelectorAll('.note-chip').forEach(c => c.classList.remove('selected'));
   document.getElementById('camera-preview').style.display = 'none';
   document.getElementById('scan-result-badge').classList.remove('visible');
   document.getElementById('submit-btn').textContent = '— 登録する —';
