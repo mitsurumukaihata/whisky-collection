@@ -35,6 +35,120 @@ body {
   padding-bottom: 20px;
 }
 
+/* ── ログイン画面 ── */
+#login-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+.login-emblem { font-size: 48px; margin-bottom: 12px; }
+.login-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 28px;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.login-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--gold-deeper);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+}
+.login-card {
+  background: linear-gradient(135deg, rgba(255,248,235,.95), rgba(232,212,168,.6));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 360px;
+}
+.login-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.1em;
+}
+.login-input {
+  width: 100%;
+  background: #fdf6e8;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 18px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  transition: border-color 0.15s;
+}
+.login-input:focus { outline: none; border-color: var(--gold-dark); box-shadow: 0 0 0 2px rgba(122,80,32,0.15); }
+.login-input::placeholder { color: #c8a870; font-size: 14px; }
+.login-pin {
+  font-size: 24px;
+  letter-spacing: 0.3em;
+  text-align: center;
+}
+.btn-login {
+  width: 100%;
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  padding: 15px;
+  color: #f4e8cc;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Cormorant Garamond', serif;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: opacity 0.15s;
+}
+.btn-login:active { opacity: 0.8; }
+.login-error {
+  text-align: center;
+  color: #a05050;
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  margin-top: 12px;
+  min-height: 18px;
+  letter-spacing: 0.05em;
+}
+.login-spinner {
+  width: 20px; height: 20px;
+  border: 2px solid rgba(244,232,204,0.3);
+  border-top-color: #f4e8cc;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: none;
+  margin: 0 auto;
+}
+
+/* ── ヘッダーのログアウトボタン ── */
+.btn-logout {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  color: var(--gold-deeper);
+  cursor: pointer;
+  letter-spacing: 0.08em;
+}
+
 /* ── ヘッダー ── */
 .app-header {
   background: var(--s1);
@@ -907,12 +1021,29 @@ body {
 </head>
 <body>
 
+<!-- ログイン画面 -->
+<div id="login-screen">
+  <div class="login-emblem">🏺</div>
+  <div class="login-title">Whisky Journal</div>
+  <div class="login-sub">Personal Collection</div>
+  <div class="login-card">
+    <div class="login-label">お名前（ひらがな）</div>
+    <input class="login-input" id="login-name" type="text" placeholder="みつる" autocomplete="off" />
+    <div class="login-label">PINコード</div>
+    <input class="login-input login-pin" id="login-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off" />
+    <button class="btn-login" onclick="doLogin()">— 入室する —</button>
+    <div class="login-spinner" id="login-spinner"></div>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
 <!-- ヘッダー -->
-<header class="app-header">
+<header class="app-header" style="position:relative;">
   <span class="header-emblem">🏺</span>
   <div class="header-title">Whisky Journal</div>
   <div class="header-line"></div>
-  <div class="header-sub">Personal Collection</div>
+  <div class="header-sub" id="header-username">Personal Collection</div>
+  <button class="btn-logout" onclick="doLogout()">ログアウト</button>
 </header>
 
 <!-- タブバー -->
@@ -1227,6 +1358,7 @@ body {
 // ── 設定 ──────────────────────────────────────────────────────────────────
 const WORKER_URL = 'https://whisky-proxy.33322666666mm.workers.dev';
 const DB_ID = '330a695f-8e88-80b8-9b85-c60dff80f56d';
+const USER_DB_ID = '81e9d188-3b86-41a8-9469-908890518e20';
 
 // ── 状態 ──────────────────────────────────────────────────────────────────
 let allEntries = [];
@@ -1242,8 +1374,74 @@ let backImageData = null;
 
 // ── 初期化 ────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
+  checkSession();
+});
+
+// ── セッション確認 ────────────────────────────────────────────────────────
+function checkSession() {
+  const session = localStorage.getItem('whisky_session');
+  if (session) {
+    const { name } = JSON.parse(session);
+    startApp(name);
+  }
+  // セッションなし → ログイン画面がそのまま表示
+}
+
+function startApp(name) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('header-username').textContent = name + ' のコレクション';
   initUsername();
   loadEntries();
+}
+
+// ── ログイン ─────────────────────────────────────────────────────────────
+async function doLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  const pin  = document.getElementById('login-pin').value.trim();
+  const errEl = document.getElementById('login-error');
+  const spinner = document.getElementById('login-spinner');
+  errEl.textContent = '';
+
+  if (!name || !pin) {
+    errEl.textContent = '名前とPINを入力してください';
+    return;
+  }
+
+  spinner.style.display = 'block';
+  document.querySelector('.btn-login').style.display = 'none';
+
+  try {
+    const data = await notionAPI(`databases/${USER_DB_ID}/query`, 'POST', {
+      filter: { property: '名前', title: { equals: name } }
+    });
+    const user = data.results?.[0];
+    if (!user) throw new Error('ユーザーが見つかりません');
+
+    const storedPin = user.properties?.PIN?.rich_text?.[0]?.plain_text;
+    if (storedPin !== pin) throw new Error('PINが違います');
+
+    const role = user.properties?.権限?.select?.name || 'ゲスト';
+    localStorage.setItem('whisky_session', JSON.stringify({ name, role }));
+    startApp(name);
+  } catch(err) {
+    errEl.textContent = err.message;
+    spinner.style.display = 'none';
+    document.querySelector('.btn-login').style.display = 'block';
+  }
+}
+
+// ── ログアウト ────────────────────────────────────────────────────────────
+function doLogout() {
+  if (!confirm('ログアウトしますか？')) return;
+  localStorage.removeItem('whisky_session');
+  location.reload();
+}
+
+// Enterキーでログイン
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('login-pin').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
 });
 
 // ── ユーザー名 ────────────────────────────────────────────────────────────
