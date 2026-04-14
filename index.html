@@ -23,6 +23,58 @@
   --gold-faint: #e8d8b0;
 }
 
+/* ── ダークテーマ ── */
+body.dark {
+  --bg: #16100a;
+  --s1: #0e0a06;
+  --s2: #1c1408;
+  --s3: #221a0e;
+  --border: #2a1e10;
+  --border2: #3a2a18;
+  --text: #f0e8d8;
+  --muted: #8a6840;
+  --accent: #e8c880;
+  --accent2: #c8a860;
+  --gold-dark: #7a5020;
+  --gold-deeper: #5a3a1a;
+  --gold-faint: #2a1e10;
+}
+body.dark .whisky-card {
+  background: linear-gradient(135deg, rgba(90,58,26,.12), rgba(14,10,6,.5));
+  border-color: #2a1e10;
+}
+body.dark .card-name { color: #e8c880; }
+body.dark .card-distillery { color: #5a3a1a; }
+body.dark .card-rating { color: #c8a860; }
+body.dark .card-tag { border-color: #2a1e10; color: #5a3a1a; }
+body.dark .card-tag.region { color: #7a5020; border-color: #3a2a14; }
+body.dark .card-tag.status-stock { color: #4a7a30; border-color: #2a4a18; }
+body.dark .card-tag.status-empty { color: #7a3020; border-color: #4a1e10; }
+body.dark .card-tag.status-wish { color: #4a5a7a; border-color: #2a3a4a; }
+body.dark .card-img-wrap { background: #0a0806; border-color: #2a1e10; }
+body.dark .camera-area { background: #0a0806; }
+body.dark .form-card { background: linear-gradient(135deg, rgba(90,58,26,.08), rgba(14,10,6,.4)); }
+body.dark .form-input, body.dark .form-select, body.dark .form-textarea {
+  background: #0a0806; color: var(--accent);
+}
+body.dark .form-input::placeholder, body.dark .form-textarea::placeholder { color: #3a2a18; }
+body.dark .form-select { background-color: #0a0806; }
+body.dark .form-select option { background: #0a0806; color: var(--accent); }
+body.dark .rating-opt { background: #0a0806; }
+body.dark .modal-img { background: #0a0806; }
+body.dark .modal-note-text { background: rgba(10,8,6,0.6); }
+body.dark .scan-spinner { border-color: rgba(232,200,128,0.2); }
+body.dark .btn-delete { border-color: #3a1a1a; color: #5a3030; }
+body.dark .btn-delete:hover { border-color: #7a4040; color: #9a5050; }
+body.dark .note-chip { background: #0a0806; border-color: #2a1e10; color: #5a3a1a; }
+body.dark .note-chip.selected { background: rgba(232,200,128,0.12); border-color: #7a5020; color: #e8c880; }
+body.dark .modal-note-chip { background: rgba(232,200,128,0.08); border-color: #3a2a18; }
+body.dark #login-screen { background: #16100a; }
+body.dark .login-card { background: linear-gradient(135deg, rgba(90,58,26,.08), rgba(14,10,6,.4)); }
+body.dark .login-input { background: #0a0806; color: #f0e8d8; }
+body.dark .btn-photo-action { background: #0a0806; }
+body.dark #toast { box-shadow: 0 4px 24px rgba(0,0,0,.6); }
+
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body {
@@ -132,10 +184,9 @@ body {
   margin: 0 auto;
 }
 
-/* ── ヘッダーのログアウトボタン ── */
-.btn-logout {
+/* ── ヘッダーボタン共通 ── */
+.btn-logout, .btn-theme {
   position: absolute;
-  right: 14px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -148,6 +199,8 @@ body {
   cursor: pointer;
   letter-spacing: 0.08em;
 }
+.btn-logout { right: 14px; }
+.btn-theme  { left: 14px; font-size: 14px; padding: 3px 8px; }
 
 /* ── ヘッダー ── */
 .app-header {
@@ -1043,6 +1096,7 @@ body {
   <div class="header-title">Whisky Journal</div>
   <div class="header-line"></div>
   <div class="header-sub" id="header-username">Personal Collection</div>
+  <button class="btn-theme" id="btn-theme" onclick="toggleTheme()">🌙</button>
   <button class="btn-logout" onclick="doLogout()">ログアウト</button>
 </header>
 
@@ -1373,6 +1427,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // ── セッション確認 ────────────────────────────────────────────────────────
 function checkSession() {
+  applyTheme();
   const session = localStorage.getItem('whisky_session');
   if (session) {
     const { name } = JSON.parse(session);
@@ -1433,6 +1488,22 @@ function doLogout() {
   if (!confirm('ログアウトしますか？')) return;
   localStorage.removeItem('whisky_session');
   location.reload();
+}
+
+// ── ダーク/ライト切り替え ─────────────────────────────────────────────────
+function toggleTheme() {
+  const isDark = document.body.classList.toggle('dark');
+  localStorage.setItem('whisky_theme', isDark ? 'dark' : 'light');
+  document.getElementById('btn-theme').textContent = isDark ? '☀️' : '🌙';
+}
+
+function applyTheme() {
+  const saved = localStorage.getItem('whisky_theme') || 'light';
+  if (saved === 'dark') {
+    document.body.classList.add('dark');
+    const btn = document.getElementById('btn-theme');
+    if (btn) btn.textContent = '☀️';
+  }
 }
 
 // Enterキーでログイン
