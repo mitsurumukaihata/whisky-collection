@@ -642,6 +642,46 @@ body.dark #viewas-banner { background: var(--accent2); }
   display: flex;
   gap: 8px;
   align-items: flex-end;
+  position: relative;
+}
+
+/* 店履歴ドロップダウン */
+#shop-history-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.2);
+  z-index: 200;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.shop-history-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.shop-history-item:last-child { border-bottom: none; }
+.shop-history-item:hover, .shop-history-item:active { background: var(--s2); }
+.shop-history-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.shop-history-meta {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .shop-input-row .form-input {
   flex: 1;
@@ -1453,8 +1493,10 @@ body.dark #viewas-banner { background: var(--accent2); }
     <div class="form-row">
       <div class="form-label">店名</div>
       <div class="shop-input-row">
-        <input class="form-input" id="f-shopname" type="text" placeholder="Bar ○○" />
+        <input class="form-input" id="f-shopname" type="text" placeholder="Bar ○○"
+          onfocus="showShopHistory()" oninput="filterShopHistory(this.value)" autocomplete="off" />
         <button class="btn-maps" onclick="openMapsSearch()">🗺️ Maps</button>
+        <div id="shop-history-dropdown"></div>
       </div>
     </div>
     <div class="form-row">
@@ -2233,7 +2275,71 @@ function setDrinkMode(mode) {
   document.getElementById('mode-bar').classList.toggle('active', mode === 'bar');
   document.getElementById('section-home').style.display = mode === 'home' ? 'block' : 'none';
   document.getElementById('section-bar').style.display  = mode === 'bar'  ? 'block' : 'none';
+  if (mode === 'bar') closeShopHistory();
 }
+
+// ── 店履歴ドロップダウン ──────────────────────────────────────────────────
+function getShopHistory() {
+  // allEntries から店名がある店を抽出・重複排除（新しい順）
+  const seen = new Set();
+  return allEntries
+    .filter(e => e.shopName)
+    .filter(e => {
+      if (seen.has(e.shopName)) return false;
+      seen.add(e.shopName);
+      return true;
+    })
+    .map(e => ({ name: e.shopName, mapsUrl: e.mapsUrl || '' }));
+}
+
+function showShopHistory() {
+  const shops = getShopHistory();
+  if (shops.length === 0) return;
+  renderShopDropdown(shops);
+  document.getElementById('shop-history-dropdown').style.display = 'block';
+}
+
+function filterShopHistory(query) {
+  const shops = getShopHistory();
+  const filtered = query
+    ? shops.filter(s => s.name.includes(query))
+    : shops;
+  if (filtered.length === 0) {
+    closeShopHistory();
+    return;
+  }
+  renderShopDropdown(filtered);
+  document.getElementById('shop-history-dropdown').style.display = 'block';
+}
+
+function renderShopDropdown(shops) {
+  const drop = document.getElementById('shop-history-dropdown');
+  drop.innerHTML = shops.map(s => `
+    <div class="shop-history-item" onmousedown="selectShop(${JSON.stringify(s).replace(/"/g,'&quot;')})">
+      <div class="shop-history-name">${s.name}</div>
+      ${s.mapsUrl ? `<div class="shop-history-meta">📍 Maps登録あり</div>` : '<div class="shop-history-meta">📍 Maps未登録</div>'}
+    </div>`).join('');
+}
+
+function selectShop(shop) {
+  document.getElementById('f-shopname').value = shop.name;
+  document.getElementById('f-mapsurl').value  = shop.mapsUrl || '';
+  closeShopHistory();
+}
+
+function closeShopHistory() {
+  const drop = document.getElementById('shop-history-dropdown');
+  if (drop) drop.style.display = 'none';
+}
+
+// フォーカスが外れたら閉じる
+document.addEventListener('click', e => {
+  const drop = document.getElementById('shop-history-dropdown');
+  const input = document.getElementById('f-shopname');
+  if (drop && input && !drop.contains(e.target) && e.target !== input) {
+    closeShopHistory();
+  }
+});
 
 // ── 評価セレクター ────────────────────────────────────────────────────────
 function setRating(val, el) {
