@@ -1026,6 +1026,36 @@ body {
   text-align: center;
 }
 
+/* ── 家呑み/店呑みトグル ── */
+.drink-mode-toggle {
+  display: flex;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.mode-btn {
+  flex: 1;
+  padding: 11px 8px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--gold-deeper);
+  font-size: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.05em;
+}
+.mode-btn.active {
+  background: var(--bg);
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: 0 1px 6px rgba(90,56,16,.15);
+}
+
 /* ── テイスティングノートチップ ── */
 .note-chips {
   display: flex;
@@ -1309,9 +1339,15 @@ body {
     </div>
   </div>
 
-  <!-- フォーム: 購入情報 -->
-  <div class="form-card">
-    <div class="form-section-title">Purchase</div>
+  <!-- モード切り替え -->
+  <div class="drink-mode-toggle">
+    <button class="mode-btn active" id="mode-home" onclick="setDrinkMode('home')">🏠 家呑み</button>
+    <button class="mode-btn" id="mode-bar" onclick="setDrinkMode('bar')">🍸 店呑み</button>
+  </div>
+
+  <!-- 家呑みセクション -->
+  <div class="form-card" id="section-home">
+    <div class="form-section-title">🏠 家呑み情報</div>
     <div class="form-grid">
       <div class="form-row">
         <div class="form-label">価格 (円)</div>
@@ -1332,31 +1368,44 @@ body {
       </select>
     </div>
     <div class="form-row">
+      <div class="form-label">飲み方</div>
+      <select id="f-drinkstyle-home" class="form-select">
+        <option value="">選択</option>
+        <option value="ストレート">🥃 ストレート</option>
+        <option value="ロック">🧊 ロック</option>
+        <option value="ハイボール">🫧 ハイボール</option>
+        <option value="水割り">💧 水割り</option>
+        <option value="ソーダ割り">🫧 ソーダ割り</option>
+        <option value="トワイス・アップ">🌊 トワイス・アップ</option>
+        <option value="その他">その他</option>
+      </select>
+    </div>
+    <div class="form-row">
       <div class="form-label">画像URL（任意）</div>
       <input class="form-input" id="f-imgurl" type="url" placeholder="https://..." />
     </div>
   </div>
 
-  <!-- フォーム: 飲んだ場所 -->
-  <div class="form-card">
-    <div class="form-section-title">📍 飲んだ場所</div>
+  <!-- 店呑みセクション -->
+  <div class="form-card" id="section-bar" style="display:none">
+    <div class="form-section-title">🍸 店呑み情報</div>
     <div class="form-row">
       <div class="form-label">店名</div>
       <div class="shop-input-row">
-        <input class="form-input" id="f-shopname" type="text" placeholder="例：Bar Zoetrope" />
-        <button class="btn-maps" onclick="openMapsSearch()">🗺️ Mapsで検索</button>
+        <input class="form-input" id="f-shopname" type="text" placeholder="Bar ○○" />
+        <button class="btn-maps" onclick="openMapsSearch()">🗺️ Maps</button>
       </div>
     </div>
     <div class="form-row">
       <div class="form-label">Google Maps URL</div>
       <input class="form-input" id="f-mapsurl" type="url" placeholder="https://maps.google.com/..." />
-      <div class="form-label-desc">MapでURLを取得してここに貼付</div>
+      <div class="form-label-desc">Mapsで検索後、URLをコピーして貼付</div>
     </div>
-    <div class="form-row-flex">
-      <div class="form-half">
+    <div class="form-grid">
+      <div class="form-row">
         <div class="form-label">飲み方</div>
         <select id="f-drinkstyle" class="form-select">
-          <option value="">選択してください</option>
+          <option value="">選択</option>
           <option value="ストレート">🥃 ストレート</option>
           <option value="ロック">🧊 ロック</option>
           <option value="ハイボール">🫧 ハイボール</option>
@@ -1367,10 +1416,14 @@ body {
           <option value="その他">その他</option>
         </select>
       </div>
-      <div class="form-half">
+      <div class="form-row">
         <div class="form-label">単価（円）</div>
         <input id="f-unitprice" type="number" class="form-input" placeholder="1500" />
       </div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">画像URL（任意）</div>
+      <input class="form-input" id="f-imgurl-bar" type="url" placeholder="https://..." />
     </div>
   </div>
 
@@ -1420,6 +1473,7 @@ let currentFilter = { status: 'all', region: 'all' };
 let selectedRating = '';
 let currentModalId = null;
 let editingId = null;
+let currentDrinkMode = 'home'; // 'home' or 'bar'
 let selectedAroma = [];
 let selectedTaste = [];
 let selectedFinish = [];
@@ -1803,14 +1857,23 @@ function editEntry() {
   document.getElementById('f-age').value = e.age ?? '';
   document.getElementById('f-abv').value = e.abv ?? '';
   document.getElementById('f-memo').value = e.memo;
-  document.getElementById('f-price').value = e.price ?? '';
-  document.getElementById('f-date').value = e.date;
-  document.getElementById('f-status').value = e.status;
-  document.getElementById('f-imgurl').value = e.imgUrl;
-  document.getElementById('f-shopname').value = e.shopName;
-  document.getElementById('f-mapsurl').value = e.mapsUrl;
-  document.getElementById('f-drinkstyle').value = e.drinkStyle || '';
-  document.getElementById('f-unitprice').value = e.unitPrice ?? '';
+  // 店呑み/家呑みモードを自動判定
+  const isBar = !!e.shopName;
+  setDrinkMode(isBar ? 'bar' : 'home');
+
+  if (isBar) {
+    document.getElementById('f-shopname').value = e.shopName;
+    document.getElementById('f-mapsurl').value = e.mapsUrl;
+    document.getElementById('f-drinkstyle').value = e.drinkStyle || '';
+    document.getElementById('f-unitprice').value = e.unitPrice ?? '';
+    document.getElementById('f-imgurl-bar').value = e.imgUrl;
+  } else {
+    document.getElementById('f-price').value = e.price ?? '';
+    document.getElementById('f-date').value = e.date;
+    document.getElementById('f-status').value = e.status;
+    document.getElementById('f-drinkstyle-home').value = e.drinkStyle || '';
+    document.getElementById('f-imgurl').value = e.imgUrl;
+  }
 
   selectedAroma = [...(e.aroma || [])];
   selectedTaste = [...(e.taste || [])];
@@ -1975,6 +2038,15 @@ function toggleNote(type, val, el) {
   else { arr.push(val); el.classList.add('selected'); }
 }
 
+// ── 家呑み/店呑みモード切り替え ──────────────────────────────────────────
+function setDrinkMode(mode) {
+  currentDrinkMode = mode;
+  document.getElementById('mode-home').classList.toggle('active', mode === 'home');
+  document.getElementById('mode-bar').classList.toggle('active', mode === 'bar');
+  document.getElementById('section-home').style.display = mode === 'home' ? 'block' : 'none';
+  document.getElementById('section-bar').style.display  = mode === 'bar'  ? 'block' : 'none';
+}
+
 // ── 評価セレクター ────────────────────────────────────────────────────────
 function setRating(val, el) {
   selectedRating = val;
@@ -2026,32 +2098,34 @@ async function submitForm() {
   const memo = document.getElementById('f-memo').value.trim();
   if (memo) properties['メモ'] = { rich_text: [{ text: { content: memo } }] };
 
-  const price = parseFloat(document.getElementById('f-price').value);
-  if (!isNaN(price)) properties['価格'] = { number: price };
-
-  const date = document.getElementById('f-date').value;
-  if (date) properties['購入日'] = { date: { start: date } };
-
-  const status = document.getElementById('f-status').value;
-  if (status) properties['ステータス'] = { select: { name: status } };
-
   const author = getUsername();
   if (author) properties['登録者'] = { rich_text: [{ text: { content: author } }] };
 
-  const imgUrl = document.getElementById('f-imgurl').value.trim();
-  if (imgUrl) properties['画像URL'] = { url: imgUrl };
-
-  const shopName = document.getElementById('f-shopname').value.trim();
-  if (shopName) properties['店名'] = { rich_text: [{ text: { content: shopName } }] };
-
-  const mapsUrl = document.getElementById('f-mapsurl').value.trim();
-  if (mapsUrl) properties['マップURL'] = { url: mapsUrl };
-
-  const drinkStyle = document.getElementById('f-drinkstyle').value;
-  if (drinkStyle) properties['飲み方'] = { select: { name: drinkStyle } };
-
-  const unitPrice = parseFloat(document.getElementById('f-unitprice').value);
-  if (!isNaN(unitPrice)) properties['単価'] = { number: unitPrice };
+  if (currentDrinkMode === 'home') {
+    // 家呑み
+    const price = parseFloat(document.getElementById('f-price').value);
+    if (!isNaN(price)) properties['価格'] = { number: price };
+    const date = document.getElementById('f-date').value;
+    if (date) properties['購入日'] = { date: { start: date } };
+    const status = document.getElementById('f-status').value;
+    if (status) properties['ステータス'] = { select: { name: status } };
+    const drinkStyle = document.getElementById('f-drinkstyle-home').value;
+    if (drinkStyle) properties['飲み方'] = { select: { name: drinkStyle } };
+    const imgUrl = document.getElementById('f-imgurl').value.trim();
+    if (imgUrl) properties['画像URL'] = { url: imgUrl };
+  } else {
+    // 店呑み
+    const shopName = document.getElementById('f-shopname').value.trim();
+    if (shopName) properties['店名'] = { rich_text: [{ text: { content: shopName } }] };
+    const mapsUrl = document.getElementById('f-mapsurl').value.trim();
+    if (mapsUrl) properties['マップURL'] = { url: mapsUrl };
+    const drinkStyle = document.getElementById('f-drinkstyle').value;
+    if (drinkStyle) properties['飲み方'] = { select: { name: drinkStyle } };
+    const unitPrice = parseFloat(document.getElementById('f-unitprice').value);
+    if (!isNaN(unitPrice)) properties['単価'] = { number: unitPrice };
+    const imgUrl = document.getElementById('f-imgurl-bar').value.trim();
+    if (imgUrl) properties['画像URL'] = { url: imgUrl };
+  }
 
   try {
     if (editingId) {
@@ -2077,14 +2151,18 @@ async function submitForm() {
 }
 
 function resetForm() {
-  ['f-name','f-distillery','f-age','f-abv','f-memo','f-price','f-date','f-imgurl','f-shopname','f-mapsurl'].forEach(id => {
-    document.getElementById(id).value = '';
+  ['f-name','f-distillery','f-age','f-abv','f-memo',
+   'f-price','f-date','f-imgurl',
+   'f-shopname','f-mapsurl','f-unitprice','f-imgurl-bar'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
   });
   document.getElementById('f-region').value = '';
   document.getElementById('f-type').value = '';
   document.getElementById('f-status').value = '';
   document.getElementById('f-drinkstyle').value = '';
-  document.getElementById('f-unitprice').value = '';
+  document.getElementById('f-drinkstyle-home').value = '';
+  setDrinkMode('home'); // リセット時は家呑みに戻す
   selectedRating = '';
   selectedAroma = [];
   selectedTaste = [];
