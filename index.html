@@ -275,6 +275,70 @@ body {
 
 /* ── タブコンテンツ ── */
 .tab-content { display: none; padding: 14px 14px 80px; }
+
+/* ── 視点切り替えバナー（管理者専用） ── */
+#viewas-banner {
+  display: none;
+  background: var(--accent);
+  color: var(--bg);
+  text-align: center;
+  padding: 6px 14px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  position: sticky;
+  top: 130px;
+  z-index: 98;
+  cursor: pointer;
+}
+body.dark #viewas-banner { background: var(--accent2); }
+
+/* ── 視点切り替えポップオーバー ── */
+#viewas-popover {
+  display: none;
+  position: fixed;
+  bottom: 90px;
+  right: 14px;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.3);
+  z-index: 300;
+  min-width: 160px;
+  overflow: hidden;
+}
+.viewas-item {
+  display: block;
+  width: 100%;
+  padding: 12px 18px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.viewas-item:last-child { border-bottom: none; }
+.viewas-item:hover { background: var(--s2); }
+.viewas-item.active { color: var(--accent); font-weight: 700; }
+
+/* ── 視点切り替えトグルボタン（管理者専用） ── */
+#btn-viewas {
+  display: none;
+  position: fixed;
+  bottom: 90px;
+  right: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 200;
+  box-shadow: 0 2px 12px rgba(0,0,0,.2);
+}
 .tab-content.active { display: block; }
 
 /* ── フィルターチップ ── */
@@ -1143,6 +1207,16 @@ body {
   <button class="tab-btn" onclick="switchTab('share')">Share</button>
 </div>
 
+<!-- 視点切り替えバナー（管理者が viewAs モード時に表示） -->
+<div id="viewas-banner" onclick="exitViewAs()">👁 <span id="viewas-banner-name"></span> の視点で見ています　　タップで全表示に戻る</div>
+
+<!-- 視点切り替えボタン＋ポップオーバー（管理者専用） -->
+<button id="btn-viewas" onclick="toggleViewAsPopover()">👁</button>
+<div id="viewas-popover">
+  <button class="viewas-item" id="viewas-all" onclick="setViewAs(null)">👑 全員表示（管理者）</button>
+  <div id="viewas-guest-list"><!-- JSで動的生成 --></div>
+</div>
+
 <!-- コレクションタブ -->
 <div id="tab-list" class="tab-content active">
   <div class="filter-row" id="status-filter">
@@ -1380,10 +1454,8 @@ body {
         <option value="その他">その他</option>
       </select>
     </div>
-    <div class="form-row">
-      <div class="form-label">画像URL（任意）</div>
-      <input class="form-input" id="f-imgurl" type="url" placeholder="https://..." />
-    </div>
+    <!-- 画像URLは非表示（カメラスキャンから自動セット） -->
+    <input type="hidden" id="f-imgurl" />
   </div>
 
   <!-- 店呑みセクション -->
@@ -1421,10 +1493,8 @@ body {
         <input id="f-unitprice" type="number" class="form-input" placeholder="1500" />
       </div>
     </div>
-    <div class="form-row">
-      <div class="form-label">画像URL（任意）</div>
-      <input class="form-input" id="f-imgurl-bar" type="url" placeholder="https://..." />
-    </div>
+    <!-- 画像URLは非表示（カメラスキャンから自動セット） -->
+    <input type="hidden" id="f-imgurl-bar" />
   </div>
 
   <button class="btn-submit" id="submit-btn" onclick="submitForm()">— 登録する —</button>
@@ -1500,6 +1570,19 @@ function startApp(name) {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('header-username').textContent = name + ' のコレクション';
   initUsername();
+
+  // 管理者の場合はゲスト一覧を取得して視点切り替えボタンを表示
+  const session = JSON.parse(localStorage.getItem('whisky_session') || '{}');
+  if (session.role === '管理者') {
+    loadGuestList();
+  }
+
+  // viewAs バナーの復元（ページリロード後も保持）
+  if (session.viewAs) {
+    document.getElementById('viewas-banner-name').textContent = session.viewAs;
+    document.getElementById('viewas-banner').style.display = 'block';
+  }
+
   loadEntries();
 }
 
@@ -1534,7 +1617,21 @@ async function doLogin() {
     if (storedPin !== pin) throw new Error('PINが違います');
 
     const role = user.properties?.権限?.select?.name || 'ゲスト';
-    localStorage.setItem('whisky_session', JSON.stringify({ name, role }));
+
+    // ゲストの場合：管理者ユーザーの名前一覧を取得してセッションに保存
+    let adminNames = [];
+    if (role !== '管理者') {
+      try {
+        const admData = await notionAPI(`databases/${USER_DB_ID}/query`, 'POST', {
+          filter: { property: '権限', select: { equals: '管理者' } }
+        });
+        adminNames = admData.results
+          .map(u => u.properties?.名前?.title?.[0]?.plain_text || '')
+          .filter(Boolean);
+      } catch(e) { /* 取得失敗時は空のまま */ }
+    }
+
+    localStorage.setItem('whisky_session', JSON.stringify({ name, role, adminNames }));
     startApp(name);
   } catch(err) {
     errEl.textContent = err.message;
@@ -1542,6 +1639,77 @@ async function doLogin() {
     document.querySelector('.btn-login').style.display = 'block';
   }
 }
+
+// ── 視点切り替え（管理者専用） ────────────────────────────────────────────
+async function loadGuestList() {
+  try {
+    const data = await notionAPI(`databases/${USER_DB_ID}/query`, 'POST', {
+      filter: { property: '権限', select: { equals: 'ゲスト' } }
+    });
+    const guests = data.results
+      .map(u => u.properties?.名前?.title?.[0]?.plain_text || '')
+      .filter(Boolean);
+
+    if (guests.length === 0) return;
+
+    // ポップオーバーにゲスト一覧を生成
+    const list = document.getElementById('viewas-guest-list');
+    list.innerHTML = guests.map(g =>
+      `<button class="viewas-item" onclick="setViewAs('${g}')">👤 ${g}</button>`
+    ).join('');
+
+    // ボタンを表示
+    document.getElementById('btn-viewas').style.display = 'block';
+
+    // セッションにゲスト一覧を保存（adminNames として使用）
+    const session = JSON.parse(localStorage.getItem('whisky_session') || '{}');
+    session.guestList = guests;
+    localStorage.setItem('whisky_session', JSON.stringify(session));
+  } catch(e) { console.error('ゲスト一覧取得失敗', e); }
+}
+
+function toggleViewAsPopover() {
+  const pop = document.getElementById('viewas-popover');
+  const session = JSON.parse(localStorage.getItem('whisky_session') || '{}');
+  // 現在の viewAs を反映
+  document.querySelectorAll('.viewas-item').forEach(el => el.classList.remove('active'));
+  if (!session.viewAs) {
+    document.getElementById('viewas-all').classList.add('active');
+  } else {
+    document.querySelectorAll('.viewas-item').forEach(el => {
+      if (el.textContent.includes(session.viewAs)) el.classList.add('active');
+    });
+  }
+  pop.style.display = pop.style.display === 'block' ? 'none' : 'block';
+}
+
+function setViewAs(guestName) {
+  document.getElementById('viewas-popover').style.display = 'none';
+  const session = JSON.parse(localStorage.getItem('whisky_session') || '{}');
+  if (guestName) {
+    session.viewAs = guestName;
+    document.getElementById('viewas-banner-name').textContent = guestName;
+    document.getElementById('viewas-banner').style.display = 'block';
+  } else {
+    delete session.viewAs;
+    document.getElementById('viewas-banner').style.display = 'none';
+  }
+  localStorage.setItem('whisky_session', JSON.stringify(session));
+  loadEntries();
+}
+
+function exitViewAs() {
+  setViewAs(null);
+}
+
+// ポップオーバー以外をタップしたら閉じる
+document.addEventListener('click', (e) => {
+  const pop = document.getElementById('viewas-popover');
+  const btn = document.getElementById('btn-viewas');
+  if (pop && btn && !pop.contains(e.target) && !btn.contains(e.target)) {
+    pop.style.display = 'none';
+  }
+});
 
 // ── ログアウト ────────────────────────────────────────────────────────────
 function doLogout() {
@@ -1573,22 +1741,23 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ── ユーザー名 ────────────────────────────────────────────────────────────
+// ── ユーザー名（セッション管理に移行済み） ────────────────────────────────
 function initUsername() {
-  const saved = localStorage.getItem('whisky_username');
-  if (saved) {
-    document.getElementById('username-input').value = saved;
+  // セッションから名前を取得（古い username-input は削除済み）
+  const session = JSON.parse(localStorage.getItem('whisky_session') || '{}');
+  if (session.name) {
+    localStorage.setItem('whisky_username', session.name); // 後方互換
   }
 }
 
 function saveUsername() {
-  const val = document.getElementById('username-input').value.trim();
-  if (!val) { showToast('名前を入力してください', '⚠️'); return; }
-  localStorage.setItem('whisky_username', val);
-  showToast(`"${val}" として登録`, '✓');
+  const session = JSON.parse(localStorage.getItem('whisky_session') || '{}');
+  showToast(`${session.name || '?'} として登録済み`, '✓');
 }
 
 function getUsername() {
+  const session = localStorage.getItem('whisky_session');
+  if (session) return JSON.parse(session).name || '';
   return localStorage.getItem('whisky_username') || '';
 }
 
@@ -1622,7 +1791,30 @@ async function loadEntries() {
       page_size: 100,
       sorts: [{ timestamp: 'created_time', direction: 'descending' }]
     });
-    allEntries = data.results.map(parseEntry);
+
+    const session = JSON.parse(localStorage.getItem('whisky_session') || '{}');
+    const role = session.role || 'ゲスト';
+    const sessionName = session.name || '';
+    const adminNames = session.adminNames || [];
+    // こっそり視点切り替えモード（管理者が特定ゲストの視点で見る）
+    const viewAs = session.viewAs || null;
+
+    let entries = data.results.map(parseEntry);
+
+    if (viewAs) {
+      // 管理者が viewAs モードで特定ゲストの視点をシミュレート
+      const viewAdminNames = adminNames.length > 0 ? adminNames : [sessionName];
+      entries = entries.filter(e =>
+        !e.author || e.author === viewAs || viewAdminNames.includes(e.author)
+      );
+    } else if (role !== '管理者') {
+      // ゲスト：自分の登録 + 管理者の登録 + 登録者なし（旧データ）のみ表示
+      entries = entries.filter(e =>
+        !e.author || e.author === sessionName || adminNames.includes(e.author)
+      );
+    }
+
+    allEntries = entries;
     renderList();
   } catch(e) {
     console.error(e);
