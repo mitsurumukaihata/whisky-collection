@@ -29,51 +29,57 @@ body.dark {
   --s1: #0e0a06;
   --s2: #1c1408;
   --s3: #221a0e;
-  --border: #2a1e10;
-  --border2: #3a2a18;
+  --border: #4a3420;
+  --border2: #5a4428;
   --text: #f0e8d8;
-  --muted: #8a6840;
+  --muted: #c8a060;
   --accent: #e8c880;
   --accent2: #c8a860;
-  --gold-dark: #7a5020;
-  --gold-deeper: #5a3a1a;
+  --gold-dark: #c8a060;
+  --gold-deeper: #a07840;
   --gold-faint: #2a1e10;
 }
 body.dark .whisky-card {
-  background: linear-gradient(135deg, rgba(90,58,26,.12), rgba(14,10,6,.5));
-  border-color: #2a1e10;
+  background: linear-gradient(135deg, rgba(90,58,26,.15), rgba(14,10,6,.6));
+  border-color: #4a3420;
+  box-shadow: none;
 }
 body.dark .card-name { color: #e8c880; }
-body.dark .card-distillery { color: #5a3a1a; }
+body.dark .card-distillery { color: #a07840; }
 body.dark .card-rating { color: #c8a860; }
-body.dark .card-tag { border-color: #2a1e10; color: #5a3a1a; }
-body.dark .card-tag.region { color: #7a5020; border-color: #3a2a14; }
-body.dark .card-tag.status-stock { color: #4a7a30; border-color: #2a4a18; }
-body.dark .card-tag.status-empty { color: #7a3020; border-color: #4a1e10; }
-body.dark .card-tag.status-wish { color: #4a5a7a; border-color: #2a3a4a; }
-body.dark .card-img-wrap { background: #0a0806; border-color: #2a1e10; }
+body.dark .card-tag { border-color: #4a3420; color: #a07840; }
+body.dark .card-tag.region { color: #a0b060; border-color: #5a6030; }
+body.dark .card-tag.status-stock { color: #70a050; border-color: #3a6028; }
+body.dark .card-tag.status-empty { color: #c07050; border-color: #6a3828; }
+body.dark .card-tag.status-wish { color: #7090c0; border-color: #3a5070; }
+body.dark .card-img-wrap { background: #0a0806; border-color: #4a3420; }
 body.dark .camera-area { background: #0a0806; }
-body.dark .form-card { background: linear-gradient(135deg, rgba(90,58,26,.08), rgba(14,10,6,.4)); }
+body.dark .form-card { background: linear-gradient(135deg, rgba(90,58,26,.1), rgba(14,10,6,.5)); }
 body.dark .form-input, body.dark .form-select, body.dark .form-textarea {
-  background: #0a0806; color: var(--accent);
+  background: #0e0a06; color: #f0e8d8; border-color: #4a3420;
 }
-body.dark .form-input::placeholder, body.dark .form-textarea::placeholder { color: #3a2a18; }
-body.dark .form-select { background-color: #0a0806; }
-body.dark .form-select option { background: #0a0806; color: var(--accent); }
-body.dark .rating-opt { background: #0a0806; }
+body.dark .form-input::placeholder, body.dark .form-textarea::placeholder { color: #5a4428; }
+body.dark .form-select { background-color: #0e0a06; }
+body.dark .form-select option { background: #0e0a06; color: #f0e8d8; }
+body.dark .rating-opt { background: #0e0a06; }
+body.dark .rating-opt.selected { background: var(--s3); }
 body.dark .modal-img { background: #0a0806; }
 body.dark .modal-note-text { background: rgba(10,8,6,0.6); }
 body.dark .scan-spinner { border-color: rgba(232,200,128,0.2); }
-body.dark .btn-delete { border-color: #3a1a1a; color: #5a3030; }
-body.dark .btn-delete:hover { border-color: #7a4040; color: #9a5050; }
-body.dark .note-chip { background: #0a0806; border-color: #2a1e10; color: #5a3a1a; }
-body.dark .note-chip.selected { background: rgba(232,200,128,0.12); border-color: #7a5020; color: #e8c880; }
-body.dark .modal-note-chip { background: rgba(232,200,128,0.08); border-color: #3a2a18; }
+body.dark .btn-delete { border-color: #6a2a2a; color: #c06060; }
+body.dark .btn-delete:hover { border-color: #9a4040; color: #d07070; }
+body.dark .note-chip { background: #0e0a06; border-color: #4a3420; color: #a07840; }
+body.dark .note-chip.selected { background: rgba(232,200,128,0.15); border-color: #c8a060; color: #e8c880; }
+body.dark .modal-note-chip { background: rgba(232,200,128,0.08); border-color: #4a3420; color: #a07840; }
 body.dark #login-screen { background: #16100a; }
-body.dark .login-card { background: linear-gradient(135deg, rgba(90,58,26,.08), rgba(14,10,6,.4)); }
-body.dark .login-input { background: #0a0806; color: #f0e8d8; }
-body.dark .btn-photo-action { background: #0a0806; }
+body.dark .login-card { background: linear-gradient(135deg, rgba(90,58,26,.1), rgba(14,10,6,.5)); }
+body.dark .login-input { background: #0e0a06; color: #f0e8d8; border-color: #4a3420; }
+body.dark .login-input::placeholder { color: #5a4428; }
+body.dark .btn-photo-action { background: #0e0a06; color: #a07840; }
 body.dark #toast { box-shadow: 0 4px 24px rgba(0,0,0,.6); }
+body.dark .modal-sheet { background: #0e0a06; }
+body.dark .chip { background: #1c1408; color: #a07840; }
+body.dark .chip.active { color: #e8c880; background: #221a0e; }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -1081,7 +1087,7 @@ body {
   <div class="login-sub">Personal Collection</div>
   <div class="login-card">
     <div class="login-label">お名前（ひらがな）</div>
-    <input class="login-input" id="login-name" type="text" placeholder="みつる" autocomplete="off" />
+    <input class="login-input" id="login-name" type="text" placeholder="なまえ" autocomplete="off" />
     <div class="login-label">PINコード</div>
     <input class="login-input login-pin" id="login-pin" type="password" inputmode="numeric" maxlength="6" minlength="6" placeholder="••••••" autocomplete="off" />
     <button class="btn-login" onclick="doLogin()">— 入室する —</button>
