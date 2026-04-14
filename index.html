@@ -1596,14 +1596,17 @@ async function doLogin() {
   document.querySelector('.btn-login').style.display = 'none';
 
   try {
+    // 名前＋PIN両方で検索（同名ユーザーが複数いても正しい1件を取得）
     const data = await notionAPI(`databases/${USER_DB_ID}/query`, 'POST', {
-      filter: { property: '名前', title: { equals: name } }
+      filter: {
+        and: [
+          { property: '名前', title: { equals: name } },
+          { property: 'PIN', rich_text: { equals: pin } }
+        ]
+      }
     });
     const user = data.results?.[0];
-    if (!user) throw new Error('ユーザーが見つかりません');
-
-    const storedPin = user.properties?.PIN?.rich_text?.[0]?.plain_text;
-    if (storedPin !== pin) throw new Error('PINが違います');
+    if (!user) throw new Error('名前またはPINが違います');
 
     const role = user.properties?.権限?.select?.name || 'ゲスト';
 
