@@ -833,6 +833,41 @@ body.dark #viewas-banner { background: var(--accent2); }
   font-size: 60px;
 }
 .modal-img img { width: 100%; max-height: 220px; object-fit: cover; }
+/* モーダル写真追加エリア */
+.modal-add-photo {
+  width: 100%;
+  height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  transition: background 0.15s;
+}
+.modal-add-photo:hover { background: var(--s2); }
+.modal-add-photo-icon { font-size: 40px; opacity: 0.5; }
+/* 写真変更ボタン（写真がある場合に上に重ねる） */
+.modal-img-wrap { position: relative; }
+.btn-change-photo {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0,0,0,.55);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(4px);
+}
+
 .modal-img-placeholder {
   width: 100%;
   height: 160px;
@@ -1542,6 +1577,9 @@ body.dark #viewas-banner { background: var(--accent2); }
   </div>
 </div>
 
+<!-- モーダル写真アップロード用（隠し） -->
+<input type="file" id="modal-photo-input" accept="image/*" capture="environment" style="display:none" onchange="onModalPhotoSelected(event)">
+
 <!-- 詳細モーダル -->
 <div id="modal-overlay" onclick="onModalOverlayClick(event)">
   <div class="modal-sheet" id="modal-sheet">
@@ -2019,9 +2057,17 @@ function openModal(id) {
 
   const imgArea = document.getElementById('modal-img-area');
   if (e.imgUrl) {
-    imgArea.innerHTML = `<div class="modal-img"><img src="${e.imgUrl}" alt="${e.name}" onerror="this.parentElement.innerHTML='<div class=modal-img-placeholder>🥃</div>'" /></div>`;
+    imgArea.innerHTML = `
+      <div class="modal-img-wrap">
+        <div class="modal-img"><img src="${e.imgUrl}" alt="${e.name}" onerror="this.parentElement.innerHTML='<div class=modal-img-placeholder>🥃</div>'" /></div>
+        <button class="btn-change-photo" onclick="document.getElementById('modal-photo-input').click()">📷 変更</button>
+      </div>`;
   } else {
-    imgArea.innerHTML = `<div class="modal-img-placeholder">🥃</div>`;
+    imgArea.innerHTML = `
+      <div class="modal-add-photo" onclick="document.getElementById('modal-photo-input').click()">
+        <div class="modal-add-photo-icon">📷</div>
+        <div>写真を追加</div>
+      </div>`;
   }
 
   const specRows = [
@@ -2067,6 +2113,55 @@ function openModal(id) {
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('show');
   currentModalId = null;
+}
+
+// ── モーダルから写真をアップロード ────────────────────────────────────────
+async function onModalPhotoSelected(event) {
+  const file = event.target.files[0];
+  if (!file || !currentModalId) return;
+  event.target.value = '';
+
+  showToast('アップロード中...', '⏳');
+
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    try {
+      const base64 = ev.target.result.split(',')[1];
+      const mediaType = file.type || 'image/jpeg';
+
+      // R2 にアップロード
+      const res = await fetch(`${WORKER_URL}/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64, mediaType }),
+      });
+      const data = await res.json();
+      if (!data.url) throw new Error(data.error || 'Upload failed');
+
+      // Notion エントリーを更新
+      await notionAPI(`pages/${currentModalId}`, 'PATCH', {
+        properties: { '画像URL': { url: data.url } }
+      });
+
+      // ローカルの allEntries を更新
+      const entry = allEntries.find(e => e.id === currentModalId);
+      if (entry) entry.imgUrl = data.url;
+
+      // モーダル画像を即時更新
+      const imgArea = document.getElementById('modal-img-area');
+      imgArea.innerHTML = `
+        <div class="modal-img-wrap">
+          <div class="modal-img"><img src="${data.url}" alt="${entry?.name || ''}" /></div>
+          <button class="btn-change-photo" onclick="document.getElementById('modal-photo-input').click()">📷 変更</button>
+        </div>`;
+
+      renderList(); // カード一覧も更新
+      showToast('写真を追加しました', '✓');
+    } catch(e) {
+      showToast('失敗: ' + e.message, '⚠️');
+    }
+  };
+  reader.readAsDataURL(file);
 }
 
 function onModalOverlayClick(e) {
