@@ -296,14 +296,15 @@ body.dark #viewas-banner { background: var(--accent2); }
 #viewas-popover {
   display: none;
   position: fixed;
-  bottom: 90px;
-  right: 14px;
+  top: 108px;
+  left: 50%;
+  transform: translateX(-50%);
   background: var(--s1);
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0,0,0,.3);
   z-index: 300;
-  min-width: 160px;
+  min-width: 200px;
   overflow: hidden;
 }
 .viewas-item {
@@ -323,21 +324,10 @@ body.dark #viewas-banner { background: var(--accent2); }
 .viewas-item:hover { background: var(--s2); }
 .viewas-item.active { color: var(--accent); font-weight: 700; }
 
-/* ── 視点切り替えトグルボタン（管理者専用） ── */
-#btn-viewas {
-  display: none;
-  position: fixed;
-  bottom: 90px;
-  right: 14px;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--s2);
-  border: 1px solid var(--border);
-  font-size: 18px;
+/* ── ヘッダーエンブレム（管理者のみタップ可） ── */
+.header-emblem.admin-mode {
   cursor: pointer;
-  z-index: 200;
-  box-shadow: 0 2px 12px rgba(0,0,0,.2);
+  user-select: none;
 }
 .tab-content.active { display: block; }
 
@@ -1210,8 +1200,7 @@ body.dark #viewas-banner { background: var(--accent2); }
 <!-- 視点切り替えバナー（管理者が viewAs モード時に表示） -->
 <div id="viewas-banner" onclick="exitViewAs()">👁 <span id="viewas-banner-name"></span> の視点で見ています　　タップで全表示に戻る</div>
 
-<!-- 視点切り替えボタン＋ポップオーバー（管理者専用） -->
-<button id="btn-viewas" onclick="toggleViewAsPopover()">👁</button>
+<!-- 視点切り替えポップオーバー（管理者専用・ヘッダーエンブレムから起動） -->
 <div id="viewas-popover">
   <button class="viewas-item" id="viewas-all" onclick="setViewAs(null)">👑 全員表示（管理者）</button>
   <div id="viewas-guest-list"><!-- JSで動的生成 --></div>
@@ -1658,8 +1647,12 @@ async function loadGuestList() {
       `<button class="viewas-item" onclick="setViewAs('${g}')">👤 ${g}</button>`
     ).join('');
 
-    // ボタンを表示
-    document.getElementById('btn-viewas').style.display = 'block';
+    // ヘッダーエンブレムをタップ可能に（こっそり）
+    const emblem = document.querySelector('.header-emblem');
+    if (emblem) {
+      emblem.classList.add('admin-mode');
+      emblem.onclick = toggleViewAsPopover;
+    }
 
     // セッションにゲスト一覧を保存（adminNames として使用）
     const session = JSON.parse(localStorage.getItem('whisky_session') || '{}');
@@ -1705,8 +1698,8 @@ function exitViewAs() {
 // ポップオーバー以外をタップしたら閉じる
 document.addEventListener('click', (e) => {
   const pop = document.getElementById('viewas-popover');
-  const btn = document.getElementById('btn-viewas');
-  if (pop && btn && !pop.contains(e.target) && !btn.contains(e.target)) {
+  const emblem = document.querySelector('.header-emblem');
+  if (pop && !pop.contains(e.target) && (!emblem || !emblem.contains(e.target))) {
     pop.style.display = 'none';
   }
 });
