@@ -302,6 +302,29 @@ body {
 
 #photo-input { display: none; }
 
+/* ── 写真アクションボタン ── */
+.photo-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  justify-content: center;
+}
+.btn-photo-action {
+  padding: 7px 18px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: #fdf6e8;
+  color: var(--gold-deeper);
+  font-size: 12px;
+  font-family: 'DM Mono', monospace;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: border-color 0.12s;
+}
+.btn-photo-action:hover { border-color: var(--border2); }
+.btn-photo-action.btn-photo-delete { border-color: #d08080; color: #a05050; }
+.btn-photo-action.btn-photo-delete:hover { border-color: #c05050; }
+
 .scan-result-badge {
   display: none;
   align-items: center;
@@ -938,6 +961,10 @@ body {
     <div class="camera-label">表ラベルを撮影</div>
     <div class="camera-sub">タップしてカメラを起動・自動認識</div>
     <img id="camera-preview-front" class="camera-preview" alt="preview" />
+    <div class="photo-actions" id="photo-actions-front" style="display:none" onclick="event.stopPropagation()">
+      <button class="btn-photo-action" onclick="openCamera('front')">📷 撮り直す</button>
+      <button class="btn-photo-action btn-photo-delete" onclick="clearPhoto('front')">✕ 削除</button>
+    </div>
     <div class="scan-overlay" id="scan-overlay">
       <div class="scan-spinner"></div>
       <div class="scan-text">読み取り中...</div>
@@ -950,6 +977,10 @@ body {
     <div class="camera-label">裏ラベルを撮影（任意）</div>
     <div class="camera-sub">裏も撮ると認識精度が上がります</div>
     <img id="camera-preview-back" class="camera-preview" alt="preview" />
+    <div class="photo-actions" id="photo-actions-back" style="display:none" onclick="event.stopPropagation()">
+      <button class="btn-photo-action" onclick="openCamera('back')">📷 撮り直す</button>
+      <button class="btn-photo-action btn-photo-delete" onclick="clearPhoto('back')">✕ 削除</button>
+    </div>
   </div>
 
   <input type="file" id="photo-input-front" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(event,'front')" />
@@ -1547,6 +1578,23 @@ function openCamera(side) {
   document.getElementById(`photo-input-${side}`).click();
 }
 
+function clearPhoto(side) {
+  const preview = document.getElementById(`camera-preview-${side}`);
+  preview.src = '';
+  preview.style.display = 'none';
+  document.getElementById(`photo-actions-${side}`).style.display = 'none';
+  if (side === 'front') {
+    frontImageData = null;
+    document.getElementById('f-imgurl').value = '';
+    document.getElementById('scan-result-badge').classList.remove('visible');
+    // 裏も一緒にリセット
+    document.getElementById('camera-area-back').style.display = 'none';
+    clearPhoto('back');
+  } else {
+    backImageData = null;
+  }
+}
+
 function onPhotoSelected(event, side) {
   const file = event.target.files[0];
   if (!file) return;
@@ -1560,6 +1608,8 @@ function onPhotoSelected(event, side) {
     const preview = document.getElementById(`camera-preview-${side}`);
     preview.src = dataUrl;
     preview.style.display = 'block';
+    // アクションボタン表示
+    document.getElementById(`photo-actions-${side}`).style.display = 'flex';
 
     if (side === 'front') {
       frontImageData = { base64, mediaType };
@@ -1602,7 +1652,12 @@ async function doScan() {
     if (data.error) throw new Error(data.error);
     applyScannedData(data);
     document.getElementById('scan-result-badge').classList.add('visible');
-    showToast(backImageData ? '表・裏から読み取りました！' : 'ラベルを読み取りました！', '✓');
+    const recognized = data.name || data.distillery;
+    if (!recognized) {
+      showToast('ラベルを認識できませんでした。手動で入力してください', '⚠️');
+    } else {
+      showToast(backImageData ? '表・裏から読み取りました！' : 'ラベルを読み取りました！', '✓');
+    }
   } catch(err) {
     showToast('読み取りに失敗しました: ' + err.message, '✕');
   } finally {
