@@ -1030,7 +1030,7 @@ body {
     <div class="login-label">お名前（ひらがな）</div>
     <input class="login-input" id="login-name" type="text" placeholder="みつる" autocomplete="off" />
     <div class="login-label">PINコード</div>
-    <input class="login-input login-pin" id="login-pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off" />
+    <input class="login-input login-pin" id="login-pin" type="password" inputmode="numeric" maxlength="6" minlength="6" placeholder="••••••" autocomplete="off" />
     <button class="btn-login" onclick="doLogin()">— 入室する —</button>
     <div class="login-spinner" id="login-spinner"></div>
     <div class="login-error" id="login-error"></div>
@@ -1404,6 +1404,10 @@ async function doLogin() {
 
   if (!name || !pin) {
     errEl.textContent = '名前とPINを入力してください';
+    return;
+  }
+  if (pin.length !== 6 || !/^\d+$/.test(pin)) {
+    errEl.textContent = 'PINは6桁の数字で入力してください';
     return;
   }
 
