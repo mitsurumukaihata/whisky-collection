@@ -2251,12 +2251,31 @@ async function uploadFrontImage() {
 }
 
 function applyScannedData(data) {
-  if (data.name) document.getElementById('f-name').value = data.name;
+  if (data.name)       document.getElementById('f-name').value = data.name;
   if (data.distillery) document.getElementById('f-distillery').value = data.distillery;
-  if (data.region) document.getElementById('f-region').value = data.region;
-  if (data.type) document.getElementById('f-type').value = data.type;
-  if (data.age !== null && data.age !== undefined) document.getElementById('f-age').value = data.age;
-  if (data.abv !== null && data.abv !== undefined) document.getElementById('f-abv').value = data.abv;
+  if (data.region)     document.getElementById('f-region').value = data.region;
+  if (data.type)       document.getElementById('f-type').value = data.type;
+  if (data.age  !== null && data.age  !== undefined) document.getElementById('f-age').value  = data.age;
+  if (data.abv  !== null && data.abv  !== undefined) document.getElementById('f-abv').value  = data.abv;
+
+  // 香り・味・フィニッシュを自動選択
+  if (Array.isArray(data.aroma)  && data.aroma.length)  applyNoteChips('aroma',  data.aroma,  selectedAroma);
+  if (Array.isArray(data.taste)  && data.taste.length)  applyNoteChips('taste',  data.taste,  selectedTaste);
+  if (Array.isArray(data.finish) && data.finish.length) applyNoteChips('finish', data.finish, selectedFinish);
+}
+
+function applyNoteChips(type, values, selectedArr) {
+  // 有効な選択肢だけ適用（プロンプトの説明文が混入しないようにバリデート）
+  const validChips = new Set(
+    [...document.querySelectorAll(`[data-note-type="${type}"]`)].map(el => el.dataset.val)
+  );
+  selectedArr.length = 0;
+  values.forEach(v => {
+    if (validChips.has(v)) selectedArr.push(v);
+  });
+  document.querySelectorAll(`[data-note-type="${type}"]`).forEach(el => {
+    el.classList.toggle('selected', selectedArr.includes(el.dataset.val));
+  });
 }
 
 // ── テイスティングノートチップ ────────────────────────────────────────────
