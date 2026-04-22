@@ -1518,6 +1518,122 @@ body.dark {
   .yk-lantern::after { font-size: 14px; }
   .yk-lantern.yk-l2, .yk-lantern.yk-l3 { display: none; }
 }
+
+/* ============================================
+   🏮 各タブのバリエーション（赤提灯世界観は共通）
+   ============================================ */
+
+/* ── Add タブ: 屋台のカウンター風（木目 + ろうそくの灯り） ── */
+#tab-add {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,200,100,0.12) 0%, transparent 60%),
+    repeating-linear-gradient(90deg,
+      rgba(90,50,30,0.18) 0px,
+      rgba(90,50,30,0.18) 2px,
+      transparent 2px,
+      transparent 8px),
+    linear-gradient(180deg, #2a1810 0%, #1a0f0a 100%);
+  border-radius: 8px;
+  margin: 8px;
+  padding: 20px 14px 80px !important;
+  position: relative;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.5), 0 2px 12px rgba(0,0,0,0.4);
+  border: 1px solid #5a3a1a;
+}
+#tab-add::before {
+  content: '🏮';
+  position: absolute;
+  top: -4px;
+  right: 18px;
+  font-size: 22px;
+  filter: drop-shadow(0 0 8px rgba(255,100,50,0.6));
+  animation: ykSway 3s ease-in-out infinite;
+  transform-origin: 50% 0;
+}
+#tab-add .camera-area {
+  background: linear-gradient(135deg, #1a0f08 0%, #0a0604 100%) !important;
+  border: 2px dashed #8a5a2a !important;
+  color: #ffd27a !important;
+  box-shadow: inset 0 0 30px rgba(255,100,50,0.08);
+}
+#tab-add .camera-area.scanning { border-color: #ffd27a !important; }
+
+/* ── Share タブ: 月見・縁側（藍＋月光） ── */
+#tab-share {
+  background:
+    radial-gradient(circle at 85% 8%, rgba(255,240,200,0.3) 0%, rgba(255,240,200,0.12) 3%, transparent 14%),
+    linear-gradient(180deg, #0e1a2a 0%, #1a1820 50%, #2a1410 100%);
+  border-radius: 8px;
+  margin: 8px;
+  padding: 20px 14px 80px !important;
+  position: relative;
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.4);
+  border: 1px solid #3a4060;
+}
+/* 月 */
+#tab-share::before {
+  content: '';
+  position: absolute;
+  top: 14px; right: 24px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff5d0 0%, #f0e0a0 60%, #d0b060 100%);
+  box-shadow: 0 0 24px rgba(255,240,180,0.5), 0 0 48px rgba(255,240,180,0.25);
+}
+.share-tab-desc {
+  color: #c9b080 !important;
+  font-family: 'Shippori Mincho',serif !important;
+  letter-spacing: 0.2em !important;
+}
+.share-card {
+  background: linear-gradient(135deg, rgba(30,40,70,0.3), rgba(10,10,20,0.5)) !important;
+  border: 1px solid #4a5070 !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4) !important;
+}
+.share-card:hover { border-color: #ffd27a !important; }
+.share-card-name { color: #ffd27a !important; font-family: 'Shippori Mincho',serif !important; }
+.share-card-distillery { color: #a0b0d0 !important; }
+.share-rating { color: #ffd27a !important; }
+.share-user { color: #a0b0d0 !important; }
+.share-card-thumb { background: #0a0810 !important; }
+
+/* ── Modal（詳細）: 木札の看板 ── */
+.modal-sheet {
+  background:
+    repeating-linear-gradient(90deg,
+      rgba(90,50,20,0.15) 0px,
+      rgba(90,50,20,0.15) 2px,
+      transparent 2px,
+      transparent 10px),
+    linear-gradient(180deg, #2a1810 0%, #1a0f08 100%) !important;
+  border: 2px solid #8a5a2a !important;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(201,169,106,0.15) !important;
+}
+.modal-sheet::before {
+  content: '';
+  position: absolute;
+  top: 6px; left: 50%;
+  transform: translateX(-50%);
+  width: 50px; height: 3px;
+  background: linear-gradient(90deg, transparent, #c9a96a, transparent);
+  border-radius: 2px;
+}
+.modal-img { background: #0a0604 !important; border-color: #6a3a1a !important; }
+.modal-note-text { background: rgba(0,0,0,0.4) !important; color: #f5e8d0 !important; }
+.modal-note-chip { background: rgba(201,169,106,0.08) !important; border-color: #6a3a1a !important; color: #c9a96a !important; }
+
+/* ── トースト: 赤提灯風 ── */
+#toast {
+  background: linear-gradient(180deg, #c52828, #7a1414) !important;
+  color: #ffd27a !important;
+  border: 1px solid #ffd27a !important;
+  font-family: 'Shippori Mincho',serif !important;
+  letter-spacing: 0.15em !important;
+  box-shadow: 0 4px 24px rgba(197,40,40,0.5) !important;
+}
+
+/* ── 星評価: 金色強調 ── */
+.rating-opt.selected { background: linear-gradient(180deg, #ffd27a, #c9a050) !important; color: #2a1410 !important; }
 </style>
 </head>
 <body>
