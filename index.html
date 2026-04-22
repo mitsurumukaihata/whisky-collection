@@ -1235,9 +1235,369 @@ body.dark #viewas-banner { background: var(--accent2); }
 .form-half {
   flex: 1;
 }
+
+/* ============================================
+   🏮 赤提灯・横丁テーマ (Yokocho Theme)
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Yusei+Magic&display=swap');
+
+:root {
+  --bg: #1a0f0a;
+  --s1: #2a1810;
+  --s2: #3a2418;
+  --s3: #4a3020;
+  --border: #7a4a2a;
+  --border2: #9a6a3a;
+  --text: #f5e8d0;
+  --muted: #c9a96a;
+  --accent: #ffd27a;
+  --accent2: #e8b050;
+  --gold-dark: #c9a96a;
+  --gold-deeper: #a88850;
+  --gold-faint: #3a2418;
+}
+body {
+  background:
+    radial-gradient(ellipse at top, rgba(197,40,40,0.12) 0%, transparent 60%),
+    linear-gradient(180deg,#0a0814 0%,#1a0f0a 40%,#2a1410 100%);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: 'Shippori Mincho','Noto Sans JP',serif;
+}
+body.dark {
+  --bg: #0a0608;
+  --s1: #1a0f0a;
+  --s2: #2a1810;
+  --s3: #3a2418;
+  --border: #6a3a1a;
+  --border2: #8a5a2a;
+  --text: #f5e8d0;
+  --muted: #c9a96a;
+  --accent: #ffd27a;
+  --accent2: #ff8a5c;
+  --gold-dark: #c9a96a;
+  --gold-deeper: #a88850;
+}
+
+/* ヘッダー装飾 */
+.app-header {
+  background: linear-gradient(180deg,#2a1410 0%,#1a0a08 100%);
+  border-bottom: 2px solid #c52828;
+  box-shadow: 0 4px 20px rgba(197,40,40,0.25);
+}
+.header-title {
+  font-family: 'Shippori Mincho',serif !important;
+  font-style: normal !important;
+  font-weight: 800 !important;
+  color: #ffd27a !important;
+  text-shadow: 0 0 12px rgba(197,40,40,0.6), 0 0 24px rgba(197,40,40,0.3);
+  letter-spacing: 0.3em !important;
+}
+.header-sub { color: #a88850 !important; }
+.header-line { background: linear-gradient(90deg,transparent,#c52828,transparent) !important; }
+
+/* カード（ウイスキー一覧） */
+.whisky-card {
+  background: linear-gradient(135deg, rgba(90,30,20,0.3), rgba(20,10,8,0.6)) !important;
+  border: 1px solid #7a4a2a !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(201,169,106,0.08) !important;
+}
+.card-name { color: #ffd27a !important; font-family: 'Shippori Mincho',serif !important; font-weight: 700; }
+.card-distillery { color: #c9a96a !important; }
+.card-rating { color: #ffd27a !important; }
+.card-tag { border-color: #7a4a2a !important; color: #c9a96a !important; background: rgba(0,0,0,0.3) !important; }
+.card-tag.region { color: #ffb080 !important; border-color: #8a4a2a !important; }
+.card-tag.status-stock { color: #c0d060 !important; border-color: #6a7030 !important; }
+.card-tag.status-empty { color: #ff8a5c !important; border-color: #7a3828 !important; }
+.card-tag.status-wish { color: #8ab0e0 !important; border-color: #3a5070 !important; }
+.card-img-wrap { background: #0a0604 !important; border-color: #7a4a2a !important; }
+
+/* タブバー */
+.tab-bar {
+  background: linear-gradient(180deg,#1a0a08,#0e0604) !important;
+  border-bottom: 1px solid #6a3a1a !important;
+}
+.tab-btn {
+  color: #a88850 !important;
+  font-family: 'Shippori Mincho',serif !important;
+  font-style: normal !important;
+  letter-spacing: 0.15em !important;
+}
+.tab-btn.active { color: #ffd27a !important; border-bottom-color: #c52828 !important; text-shadow: 0 0 8px rgba(255,210,122,0.5); }
+
+/* ボタン類 */
+.btn-login, .btn-primary, .btn-save, button.btn-main {
+  background: linear-gradient(180deg,#c52828,#7a1414) !important;
+  color: #fff !important;
+  box-shadow: 0 0 15px rgba(197,40,40,0.4), inset 0 1px 0 rgba(255,255,255,0.2) !important;
+  border: 1px solid #ffd27a !important;
+  letter-spacing: 0.2em !important;
+  font-family: 'Shippori Mincho',serif !important;
+  font-weight: 700 !important;
+}
+
+/* ログイン画面 */
+#login-screen {
+  background:
+    radial-gradient(ellipse at top, rgba(197,40,40,0.18) 0%, transparent 60%),
+    linear-gradient(180deg,#0a0814 0%,#1a0f0a 40%,#2a1410 100%) !important;
+}
+.login-title {
+  font-family: 'Shippori Mincho',serif !important;
+  font-style: normal !important;
+  font-weight: 800 !important;
+  color: #ffd27a !important;
+  text-shadow: 0 0 16px rgba(197,40,40,0.6);
+  letter-spacing: 0.2em;
+}
+.login-sub { color: #a88850 !important; }
+.login-card {
+  background: linear-gradient(135deg, rgba(90,30,20,0.25), rgba(20,10,8,0.7)) !important;
+  border: 1px solid #7a4a2a !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(201,169,106,0.1);
+}
+.login-label { color: #c9a96a !important; }
+.login-input {
+  background: #0e0604 !important;
+  color: #f5e8d0 !important;
+  border-color: #6a3a1a !important;
+}
+
+/* フォーム */
+.form-card { background: linear-gradient(135deg, rgba(90,30,20,0.2), rgba(20,10,8,0.5)) !important; }
+.form-input, .form-select, .form-textarea {
+  background: #0e0604 !important;
+  color: #f5e8d0 !important;
+  border-color: #6a3a1a !important;
+}
+.form-input::placeholder, .form-textarea::placeholder { color: #6a4a2a !important; }
+
+.note-chip {
+  background: #0e0604 !important;
+  border-color: #6a3a1a !important;
+  color: #a88850 !important;
+}
+.note-chip.selected {
+  background: rgba(197,40,40,0.2) !important;
+  border-color: #ffd27a !important;
+  color: #ffd27a !important;
+}
+
+/* ============================================
+   🏮 提灯・おっさんオーバーレイ
+   ============================================ */
+.yk-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  overflow: hidden;
+}
+.yk-lantern {
+  position: absolute;
+  width: 38px;
+  height: 46px;
+  background: radial-gradient(ellipse at 50% 45%, #ff4a3a 0%, #c52828 60%, #7a1414 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 25px rgba(255,74,58,0.6), 0 0 50px rgba(197,40,40,0.35), inset 0 -6px 10px rgba(0,0,0,0.4);
+  transform-origin: 50% -40px;
+  animation: ykSway 3.2s ease-in-out infinite;
+  top: -4px;
+}
+.yk-lantern::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -44px;
+  width: 1px;
+  height: 44px;
+  background: #1a0a06;
+}
+.yk-lantern::after {
+  content: '酒';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: #ffd700;
+  font-weight: 800;
+  font-family: 'Shippori Mincho',serif;
+  font-size: 18px;
+  text-shadow: 0 0 4px #000, 0 0 8px rgba(0,0,0,0.8);
+}
+.yk-lantern.yk-l1 { left: 4%;  animation-delay: 0s; }
+.yk-lantern.yk-l2 { left: 22%; animation-delay: -0.8s; transform-origin: 50% -40px; }
+.yk-lantern.yk-l3 { right: 22%; animation-delay: -1.6s; }
+.yk-lantern.yk-l4 { right: 4%;  animation-delay: -2.4s; }
+@keyframes ykSway {
+  0%,100% { transform: rotate(-6deg); }
+  50%     { transform: rotate(6deg); }
+}
+
+/* 歩き回るおっさん */
+.yk-ossan {
+  position: fixed;
+  bottom: 0;
+  width: 64px;
+  height: 82px;
+  pointer-events: none;
+  z-index: 51;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+}
+.yk-ossan.yk-o1 { animation: ykWalkR 24s linear infinite; animation-delay: 0s; }
+.yk-ossan.yk-o2 { animation: ykWalkL 32s linear infinite; animation-delay: -10s; width: 54px; height: 70px; opacity: 0.85; }
+.yk-ossan.yk-o3 { animation: ykWalkR 40s linear infinite; animation-delay: -22s; width: 48px; height: 62px; opacity: 0.7; }
+
+.yk-ossan-inner {
+  animation: ykWobble 0.6s ease-in-out infinite;
+  transform-origin: 50% 90%;
+  width: 100%; height: 100%;
+}
+@keyframes ykWalkR {
+  0%   { left: -80px; }
+  100% { left: 110%; }
+}
+@keyframes ykWalkL {
+  0%   { left: 110%; transform: scaleX(-1); }
+  100% { left: -80px; transform: scaleX(-1); }
+}
+@keyframes ykWobble {
+  0%,100% { transform: rotate(-4deg) translateY(0); }
+  25%     { transform: rotate(3deg) translateY(-1px); }
+  50%     { transform: rotate(-2deg) translateY(0); }
+  75%     { transform: rotate(5deg) translateY(-1px); }
+}
+
+/* 吹き出し */
+.yk-bubble {
+  position: fixed;
+  bottom: 88px;
+  left: 30%;
+  background: #fff8e8;
+  color: #3a1810;
+  padding: 5px 10px;
+  border-radius: 14px;
+  font-size: 11px;
+  font-family: 'Yusei Magic',sans-serif;
+  pointer-events: none;
+  z-index: 52;
+  opacity: 0;
+  animation: ykBubble 8s ease-in-out infinite;
+  animation-delay: 3s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  white-space: nowrap;
+}
+.yk-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -5px; left: 18px;
+  width: 0; height: 0;
+  border: 5px solid transparent;
+  border-top-color: #fff8e8;
+  border-bottom: 0;
+}
+@keyframes ykBubble {
+  0%, 90%, 100% { opacity: 0; }
+  10%, 30%       { opacity: 1; }
+  40%            { opacity: 0; }
+}
+
+/* 画面下の路地影 */
+.yk-alley-floor {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 60px;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.5) 100%);
+  pointer-events: none;
+  z-index: 49;
+}
+
+/* モバイルで小さめに */
+@media (max-width: 420px) {
+  .yk-lantern { width: 30px; height: 36px; }
+  .yk-lantern::after { font-size: 14px; }
+  .yk-lantern.yk-l2, .yk-lantern.yk-l3 { display: none; }
+}
 </style>
 </head>
 <body>
+
+<!-- 🏮 赤提灯横丁オーバーレイ -->
+<div class="yk-overlay" aria-hidden="true">
+  <div class="yk-lantern yk-l1"></div>
+  <div class="yk-lantern yk-l2"></div>
+  <div class="yk-lantern yk-l3"></div>
+  <div class="yk-lantern yk-l4"></div>
+</div>
+<div class="yk-alley-floor" aria-hidden="true"></div>
+
+<!-- 酔っ払いおっさん① -->
+<div class="yk-ossan yk-o1" aria-hidden="true">
+  <svg class="yk-ossan-inner" viewBox="0 0 64 82" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="32" cy="78" rx="18" ry="3" fill="rgba(0,0,0,0.4)"/>
+    <path d="M18 48 L46 48 L50 78 L14 78 Z" fill="#2a4a6a"/>
+    <rect x="26" y="48" width="12" height="22" fill="#4a6a8a"/>
+    <rect x="29" y="48" width="2" height="22" fill="#c52828"/>
+    <circle cx="32" cy="30" r="18" fill="#ffd4b0"/>
+    <path d="M14 18 Q32 8 50 18 Q50 22 46 24 Q32 18 18 24 Q14 22 14 18 Z" fill="#1a1008"/>
+    <ellipse cx="25" cy="30" rx="2.5" ry="0.8" fill="#000"/>
+    <ellipse cx="39" cy="30" rx="2.5" ry="0.8" fill="#000"/>
+    <circle cx="32" cy="36" r="4" fill="#ff6b4a"/>
+    <ellipse cx="19" cy="34" rx="4" ry="2.5" fill="#ffb0a0" opacity="0.7"/>
+    <ellipse cx="45" cy="34" rx="4" ry="2.5" fill="#ffb0a0" opacity="0.7"/>
+    <path d="M27 42 Q32 45 37 42" stroke="#5a2010" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+    <ellipse cx="52" cy="58" rx="5" ry="8" fill="#2a4020" stroke="#1a2810" stroke-width="1"/>
+    <rect x="50" y="50" width="4" height="4" fill="#8a6030"/>
+  </svg>
+</div>
+
+<!-- 酔っ払いおっさん② -->
+<div class="yk-ossan yk-o2" aria-hidden="true">
+  <svg class="yk-ossan-inner" viewBox="0 0 54 70" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="27" cy="66" rx="15" ry="2.5" fill="rgba(0,0,0,0.4)"/>
+    <path d="M15 40 L39 40 L42 66 L12 66 Z" fill="#6a3020"/>
+    <circle cx="27" cy="26" r="16" fill="#ffd4b0"/>
+    <ellipse cx="27" cy="14" rx="14" ry="4" fill="#ffd4a8"/>
+    <path d="M20 22 L24 24 M30 24 L34 22" stroke="#000" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="27" cy="30" r="3.5" fill="#ff6b4a"/>
+    <ellipse cx="16" cy="28" rx="3.5" ry="2" fill="#ffb0a0" opacity="0.7"/>
+    <ellipse cx="38" cy="28" rx="3.5" ry="2" fill="#ffb0a0" opacity="0.7"/>
+    <path d="M22 36 Q27 34 32 36" stroke="#5a2010" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+    <rect x="40" y="45" width="8" height="14" rx="1" fill="#c9a96a" stroke="#5a3a1a" stroke-width="0.8"/>
+    <rect x="41" y="47" width="6" height="3" fill="#fff" opacity="0.4"/>
+  </svg>
+</div>
+
+<!-- 酔っ払いおっさん③ -->
+<div class="yk-ossan yk-o3" aria-hidden="true">
+  <svg class="yk-ossan-inner" viewBox="0 0 48 62" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="24" cy="58" rx="13" ry="2" fill="rgba(0,0,0,0.4)"/>
+    <path d="M13 36 L35 36 L37 58 L11 58 Z" fill="#3a3a4a"/>
+    <circle cx="24" cy="22" r="14" fill="#ffd4b0"/>
+    <path d="M10 14 Q24 6 38 14 L36 18 Q24 12 12 18 Z" fill="#2a1a10"/>
+    <ellipse cx="18" cy="22" rx="2" ry="0.7" fill="#000"/>
+    <ellipse cx="30" cy="22" rx="2" ry="0.7" fill="#000"/>
+    <circle cx="24" cy="27" r="3" fill="#ff6b4a"/>
+    <ellipse cx="13" cy="25" rx="3" ry="2" fill="#ffb0a0" opacity="0.7"/>
+    <ellipse cx="35" cy="25" rx="3" ry="2" fill="#ffb0a0" opacity="0.7"/>
+    <path d="M19 32 Q24 34 29 32" stroke="#5a2010" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  </svg>
+</div>
+
+<!-- 吹き出し（ランダムセリフ） -->
+<div class="yk-bubble" id="yk-bubble">ぷはぁ〜</div>
+
+<script>
+(function(){
+  var lines = ['ぷはぁ〜','もう一杯…','天国や…','ひっく','今夜は無礼講じゃ！','帰りたくない','マスター、同じの','師匠ぉ〜','ちょーし最高！','まだ行けるで','記憶が…ない'];
+  var bubble = document.getElementById('yk-bubble');
+  if(!bubble) return;
+  setInterval(function(){
+    bubble.textContent = lines[Math.floor(Math.random()*lines.length)];
+    bubble.style.left = (15 + Math.random()*55) + '%';
+  }, 8000);
+})();
+</script>
 
 <!-- ログイン画面 -->
 <div id="login-screen">
