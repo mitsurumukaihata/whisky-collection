@@ -1694,8 +1694,8 @@ body.dark {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.75);
-  z-index: 500;
+  background: rgba(0,0,0,0.85);
+  z-index: 1000;
   align-items: flex-end;
   justify-content: center;
 }
@@ -3368,26 +3368,42 @@ async function loadUsers() {
 }
 
 function openComposeFromModal() {
-  if (!currentModalId) return;
+  console.log('[msg] openComposeFromModal called, currentModalId=', currentModalId);
+  if (!currentModalId) { alert('ウイスキーが選択されていません'); return; }
   const entry = allEntries.find(e => e.id === currentModalId);
-  if (!entry) return;
+  if (!entry) { alert('ウイスキー情報が見つかりません'); return; }
   composeWhiskyId = entry.id;
   composeWhiskyName = entry.name;
-  document.getElementById('compose-whisky-info').innerHTML =
-    '🥃 ' + (entry.name||'(名称未設定)') +
-    (entry.distillery ? '<small>'+entry.distillery+'</small>' : '');
+  const info = document.getElementById('compose-whisky-info');
+  if (info) {
+    info.innerHTML = '🥃 ' + (entry.name||'(名称未設定)') +
+      (entry.distillery ? '<small>'+entry.distillery+'</small>' : '');
+  }
   // 宛先ドロップダウン（自分以外）
   const me = getSessionName();
   const sel = document.getElementById('compose-recipient');
-  const others = allUsers.filter(u => u.name !== me);
+  if (!allUsers || !allUsers.length) {
+    // まだユーザーリストが未ロードなら取得してから
+    loadUsers().then(() => { fillRecipients(me, sel); });
+  } else {
+    fillRecipients(me, sel);
+  }
+  document.getElementById('compose-body').value = '';
+  const overlay = document.getElementById('compose-overlay');
+  if (!overlay) { alert('compose-overlay が見つかりません'); return; }
+  overlay.classList.add('active');
+  console.log('[msg] compose overlay activated');
+}
+
+function fillRecipients(me, sel) {
+  if (!sel) return;
+  const others = (allUsers||[]).filter(u => u.name !== me);
   if (!others.length) {
     sel.innerHTML = '<option value="">他のユーザーがいません</option>';
   } else {
     sel.innerHTML = '<option value="">-- 選んでください --</option>' +
       others.map(u => '<option value="'+u.name+'">'+u.name+'</option>').join('');
   }
-  document.getElementById('compose-body').value = '';
-  document.getElementById('compose-overlay').classList.add('active');
 }
 
 function closeCompose(ev) {
