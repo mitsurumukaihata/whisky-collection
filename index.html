@@ -1637,6 +1637,23 @@ body.dark {
 /* ── 星評価: 金色強調 ── */
 .rating-opt.selected { background: linear-gradient(180deg, #ffd27a, #c9a050) !important; color: #2a1410 !important; }
 
+/* ── 「薦める」独立ボタン ── */
+.btn-recommend-big {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(180deg, #c52828, #7a1414);
+  border: 1px solid #ffd27a;
+  border-radius: 6px;
+  color: #ffd27a;
+  font-size: 15px;
+  font-family: 'Shippori Mincho', serif;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(197,40,40,0.4);
+}
+.btn-recommend-big:active { opacity: 0.85; }
+
 /* ============================================
    📮 メッセージ機能
    ============================================ */
@@ -2308,9 +2325,11 @@ body.dark {
     <div class="modal-handle-wrap"><div class="modal-handle"></div></div>
     <div id="modal-img-area"></div>
     <div class="modal-body" id="modal-body"></div>
+    <div style="padding: 16px 16px 0;">
+      <button id="modal-recommend-btn" onclick="openComposeFromModal()" class="btn-recommend-big">🍶 友達にこの一杯を薦める</button>
+    </div>
     <div class="modal-actions">
       <button class="btn-close" onclick="closeModal()">閉じる</button>
-      <button class="btn-edit" id="modal-recommend-btn" onclick="openComposeFromModal()" style="border-color:#c52828;color:#ffd27a">🍶 薦める</button>
       <button class="btn-edit" id="modal-edit-btn" onclick="editEntry()">編集</button>
       <button class="btn-delete" id="modal-delete-btn" onclick="deleteEntry()">削除</button>
     </div>
