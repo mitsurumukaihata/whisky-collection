@@ -3397,12 +3397,31 @@ function openComposeFromModal() {
 
 function fillRecipients(me, sel) {
   if (!sel) return;
-  const others = (allUsers||[]).filter(u => u.name !== me);
-  if (!others.length) {
-    sel.innerHTML = '<option value="">他のユーザーがいません</option>';
+  // 権限に応じた宛先制限:
+  // 管理者 → 全員に送れる
+  // ゲスト → 管理者にしか送れない（= 向畑さんとの共有のみ）
+  let session = {};
+  try { session = JSON.parse(localStorage.getItem('whisky_session')||'{}'); } catch(e) {}
+  const role = session.role || 'ゲスト';
+  const adminNames = session.adminNames || [];
+
+  let candidates;
+  if (role === '管理者') {
+    // 全ユーザー（自分以外）
+    candidates = (allUsers||[]).filter(u => u.name !== me).map(u => u.name);
+  } else {
+    // 管理者のみ（通常1名 = 向畑さん）
+    candidates = adminNames.filter(n => n && n !== me);
+  }
+
+  if (!candidates.length) {
+    sel.innerHTML = '<option value="">送信先がいません</option>';
+  } else if (candidates.length === 1) {
+    // 送信先が1人だけならそのまま固定表示
+    sel.innerHTML = '<option value="'+candidates[0]+'" selected>'+candidates[0]+' さん</option>';
   } else {
     sel.innerHTML = '<option value="">-- 選んでください --</option>' +
-      others.map(u => '<option value="'+u.name+'">'+u.name+'</option>').join('');
+      candidates.map(n => '<option value="'+n+'">'+n+'</option>').join('');
   }
 }
 
