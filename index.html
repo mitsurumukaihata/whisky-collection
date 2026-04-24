@@ -1660,6 +1660,25 @@ body.dark {
 /* ============================================
    📮 メッセージ機能
    ============================================ */
+.btn-refresh {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 128px;
+  background: rgba(255,210,122,0.1);
+  border: 1px solid #c9a96a;
+  color: #ffd27a;
+  padding: 4px 8px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  z-index: 101;
+}
+.btn-refresh:active { opacity: 0.6; }
+.btn-refresh.spinning { animation: ykRefreshSpin 0.8s linear infinite; }
+@keyframes ykRefreshSpin { to { transform: translateY(-50%) rotate(360deg); } }
+
 .btn-inbox {
   position: absolute;
   top: 50%;
@@ -1980,6 +1999,7 @@ body.dark {
   <button class="btn-theme" id="btn-theme" onclick="toggleTheme()">🌙</button>
   <button class="btn-logout" onclick="doLogout()">ログアウト</button>
   <button class="btn-inbox" id="btn-inbox" onclick="openInbox()" title="文箱">📮<span id="inbox-badge" class="inbox-badge" style="display:none">0</span></button>
+  <button class="btn-refresh" id="btn-refresh" onclick="refreshAll()" title="更新">🔄</button>
 </header>
 
 <!-- 📮 受信箱（文箱） -->
@@ -3570,6 +3590,33 @@ function showOssanNotify(text) {
     bubble.classList.remove('notify');
     bubble.onclick = null;
   }, 12000);
+}
+
+// ── 手動更新 ──────────────────────────────────────────────────────────────
+async function refreshAll() {
+  const btn = document.getElementById('btn-refresh');
+  if (btn) btn.classList.add('spinning');
+  try {
+    await Promise.all([
+      loadEntries(),
+      loadUsers(),
+      loadInbox()
+    ]);
+    // 現在のタブを再描画
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) {
+      const t = activeTab.textContent.includes('仲間') ? 'share' :
+                activeTab.textContent.includes('一杯') ? 'add' : 'list';
+      if (t === 'share') renderShare();
+      else if (t === 'list') renderList();
+    }
+    showToast('更新したよ', '🔄');
+  } catch(e) {
+    console.error(e);
+    showToast('更新に失敗しました', '⚠');
+  } finally {
+    if (btn) btn.classList.remove('spinning');
+  }
 }
 
 // ── 初期化フック：ログイン後にユーザー一覧と受信箱を読み込み、ポーリング開始 ──
