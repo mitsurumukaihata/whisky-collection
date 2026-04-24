@@ -2443,18 +2443,16 @@ async function doLogin() {
 
     const role = user.properties?.権限?.select?.name || 'ゲスト';
 
-    // ゲストの場合：管理者ユーザーの名前一覧を取得してセッションに保存
+    // 管理者ユーザーの名前一覧を取得（admin/guest 問わず。viewAs フィルタで使う）
     let adminNames = [];
-    if (role !== '管理者') {
-      try {
-        const admData = await notionAPI(`databases/${USER_DB_ID}/query`, 'POST', {
-          filter: { property: '権限', select: { equals: '管理者' } }
-        });
-        adminNames = admData.results
-          .map(u => u.properties?.名前?.title?.[0]?.plain_text || '')
-          .filter(Boolean);
-      } catch(e) { /* 取得失敗時は空のまま */ }
-    }
+    try {
+      const admData = await notionAPI(`databases/${USER_DB_ID}/query`, 'POST', {
+        filter: { property: '権限', select: { equals: '管理者' } }
+      });
+      adminNames = admData.results
+        .map(u => u.properties?.名前?.title?.[0]?.plain_text || '')
+        .filter(Boolean);
+    } catch(e) { /* 取得失敗時は空のまま */ }
 
     localStorage.setItem('whisky_session', JSON.stringify({ name, role, adminNames }));
     startApp(name);
