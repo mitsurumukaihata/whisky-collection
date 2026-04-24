@@ -3592,6 +3592,61 @@ function showOssanNotify(text) {
   }, 12000);
 }
 
+// ── 引っ張って更新（Pull-to-Refresh） ─────────────────────────────────────
+(function setupPullToRefresh(){
+  let startY = 0, pulling = false, active = false;
+  const threshold = 70;
+  const indicator = document.createElement('div');
+  indicator.id = 'ptr-indicator';
+  indicator.innerHTML = '🔄 <span id="ptr-label">引っ張って更新</span>';
+  indicator.style.cssText = 'position:fixed;top:-50px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#c52828,#7a1414);color:#ffd27a;padding:10px 20px;border-radius:24px;font-family:"Shippori Mincho",serif;font-size:13px;z-index:9998;box-shadow:0 4px 16px rgba(0,0,0,0.5);border:1px solid #ffd27a;transition:top 0.15s ease;pointer-events:none;white-space:nowrap;';
+  document.body.appendChild(indicator);
+
+  function onStart(e){
+    if (document.scrollingElement.scrollTop > 0) return;
+    if (document.querySelector('.modal-sheet') && document.getElementById('modal-overlay')?.classList.contains('show')) return;
+    if (document.getElementById('compose-overlay')?.classList.contains('active')) return;
+    if (document.getElementById('inbox-overlay')?.classList.contains('active')) return;
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    pulling = true;
+    active = false;
+  }
+  function onMove(e){
+    if (!pulling) return;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    const dy = y - startY;
+    if (dy <= 0) { indicator.style.top = '-50px'; active = false; return; }
+    if (document.scrollingElement.scrollTop > 0) { pulling = false; indicator.style.top = '-50px'; return; }
+    e.preventDefault && e.cancelable && e.preventDefault();
+    const pulled = Math.min(dy * 0.5, 100);
+    indicator.style.top = (pulled - 50) + 'px';
+    if (dy >= threshold) {
+      active = true;
+      document.getElementById('ptr-label').textContent = '離して更新';
+    } else {
+      active = false;
+      document.getElementById('ptr-label').textContent = '引っ張って更新';
+    }
+  }
+  function onEnd(){
+    if (!pulling) return;
+    pulling = false;
+    if (active) {
+      indicator.style.top = '20px';
+      document.getElementById('ptr-label').textContent = '更新中…';
+      refreshAll().finally(() => {
+        setTimeout(() => { indicator.style.top = '-50px'; }, 400);
+      });
+    } else {
+      indicator.style.top = '-50px';
+    }
+  }
+  window.addEventListener('touchstart', onStart, { passive: true });
+  window.addEventListener('touchmove', onMove, { passive: false });
+  window.addEventListener('touchend', onEnd, { passive: true });
+  window.addEventListener('touchcancel', onEnd, { passive: true });
+})();
+
 // ── 手動更新 ──────────────────────────────────────────────────────────────
 async function refreshAll() {
   const btn = document.getElementById('btn-refresh');
