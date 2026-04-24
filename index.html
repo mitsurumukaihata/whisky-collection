@@ -1878,21 +1878,53 @@ body.dark {
 }
 .inbox-time { color: #a88850; font-size: 10px; margin-top: 6px; font-family: 'DM Mono',monospace; }
 
-/* おっさん通知吹き出し（上書き） */
+/* おっさん通知吹き出し（大きく・ド派手に） */
 .yk-bubble.notify {
-  background: linear-gradient(180deg,#ffd27a,#e8b050) !important;
-  color: #2a1410 !important;
-  border: 2px solid #c52828;
-  font-weight: 700;
-  box-shadow: 0 0 16px rgba(255,210,122,0.6);
-  animation: none !important;
+  background: linear-gradient(180deg,#ffd27a 0%,#ffb84a 50%,#e8901c 100%) !important;
+  color: #2a0a08 !important;
+  border: 3px solid #c52828;
+  font-weight: 900 !important;
+  box-shadow:
+    0 0 0 4px rgba(197,40,40,0.4),
+    0 0 24px rgba(255,180,74,0.8),
+    0 6px 20px rgba(0,0,0,0.5);
+  animation: ykNotifyWiggle 0.5s ease-in-out infinite alternate, ykNotifyGlow 1.2s ease-in-out infinite !important;
   opacity: 1 !important;
   cursor: pointer;
   pointer-events: auto !important;
-  font-size: 12px;
-  padding: 7px 12px;
+  font-size: 17px !important;
+  padding: 14px 20px !important;
+  border-radius: 20px !important;
+  letter-spacing: 0.05em;
+  font-family: 'Shippori Mincho', serif !important;
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+  white-space: nowrap;
+  z-index: 200 !important;
 }
-.yk-bubble.notify::after { border-top-color: #ffd27a !important; }
+.yk-bubble.notify::after {
+  border-top-color: #e8901c !important;
+  border-width: 10px !important;
+  bottom: -9px !important;
+}
+.yk-bubble.notify::before {
+  content: '📮';
+  font-size: 24px;
+  margin-right: 6px;
+  animation: ykNotifyBounce 0.8s ease-in-out infinite;
+  display: inline-block;
+}
+@keyframes ykNotifyWiggle {
+  0%   { transform: rotate(-2deg) scale(1); }
+  100% { transform: rotate(2deg) scale(1.04); }
+}
+@keyframes ykNotifyGlow {
+  0%,100% { box-shadow: 0 0 0 4px rgba(197,40,40,0.4), 0 0 24px rgba(255,180,74,0.8), 0 6px 20px rgba(0,0,0,0.5); }
+  50%     { box-shadow: 0 0 0 8px rgba(197,40,40,0.2), 0 0 40px rgba(255,180,74,1),   0 6px 20px rgba(0,0,0,0.5); }
+}
+@keyframes ykNotifyBounce {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-3px); }
+}
 </style>
 </head>
 <body>
@@ -1998,7 +2030,6 @@ body.dark {
   <div class="header-sub" id="header-username">WHISKY JOURNAL</div>
   <button class="btn-theme" id="btn-theme" onclick="toggleTheme()">🌙</button>
   <button class="btn-logout" onclick="doLogout()">ログアウト</button>
-  <button class="btn-inbox" id="btn-inbox" onclick="openInbox()" title="文箱">📮<span id="inbox-badge" class="inbox-badge" style="display:none">0</span></button>
 </header>
 
 <!-- 📮 受信箱（文箱） -->
@@ -3508,11 +3539,11 @@ async function loadInbox() {
 }
 
 function updateInboxBadge() {
-  const unread = inboxMessages.filter(m => m.unread).length;
-  const badge = document.getElementById('inbox-badge');
-  if (!badge) return;
-  if (unread > 0) { badge.textContent = unread; badge.style.display = 'inline-block'; }
-  else { badge.style.display = 'none'; }
+  // 文箱ボタンは削除済み。未読の有無でおっさん通知を制御。
+  const unread = inboxMessages.filter(m => m.unread);
+  if (unread.length === 0) {
+    hideOssanNotify();
+  }
 }
 
 function openInbox() {
@@ -3550,6 +3581,7 @@ async function readMessage(id) {
   if (!m) return;
   if (m.unread) {
     m.unread = false;
+    maybeNotifyViaOssan();
     updateInboxBadge();
     renderInbox();
     try {
@@ -3567,28 +3599,37 @@ async function readMessage(id) {
 
 function maybeNotifyViaOssan() {
   const unread = inboxMessages.filter(m => m.unread);
-  if (!unread.length) return;
-  // まだ通知していない未読があれば吹き出しで表示
-  const fresh = unread.filter(m => !lastNotifiedMsgIds.has(m.id));
-  if (!fresh.length) return;
-  const m = fresh[0];
-  showOssanNotify(m.from + ' からメッセージ来てるよ！');
-  fresh.forEach(x => lastNotifiedMsgIds.add(x.id));
+  if (!unread.length) { hideOssanNotify(); return; }
+  // 未読がある限り通知を表示し続ける（複数なら件数を出す）
+  const froms = Array.from(new Set(unread.map(m => m.from)));
+  let text;
+  if (unread.length === 1) text = froms[0] + ' からメッセージ！';
+  else if (froms.length === 1) text = froms[0] + ' から ' + unread.length + '件！';
+  else text = unread.length + '件のお便り！';
+  showOssanNotify(text);
 }
 
 function showOssanNotify(text) {
   const bubble = document.getElementById('yk-bubble');
   if (!bubble) return;
-  bubble.textContent = '📮 ' + text;
+  bubble.textContent = text;
   bubble.classList.add('notify');
-  bubble.style.left = '20%';
-  bubble.onclick = function(){ openInbox(); };
-  // 12秒後に通常に戻す
+  // 画面中央下寄りの目立つ位置に固定
+  bubble.style.left = '50%';
+  bubble.style.transform = 'translateX(-50%)';
+  bubble.style.bottom = '120px';
+  bubble.onclick = function(ev){ ev && ev.stopPropagation(); openInbox(); };
+  // 自動では消さない（未読が無くなった時のみ消える）
   clearTimeout(window._ykNotifyTimer);
-  window._ykNotifyTimer = setTimeout(() => {
-    bubble.classList.remove('notify');
-    bubble.onclick = null;
-  }, 12000);
+}
+
+function hideOssanNotify() {
+  const bubble = document.getElementById('yk-bubble');
+  if (!bubble) return;
+  bubble.classList.remove('notify');
+  bubble.style.transform = '';
+  bubble.style.bottom = '';
+  bubble.onclick = null;
 }
 
 // ── 引っ張って更新（Pull-to-Refresh） ─────────────────────────────────────
