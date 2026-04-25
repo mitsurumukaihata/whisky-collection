@@ -1470,7 +1470,7 @@ body.dark {
   75%     { transform: rotate(5deg) translateY(-1px); }
 }
 
-/* 吹き出し */
+/* 吹き出し（通知用・固定） */
 .yk-bubble {
   position: fixed;
   bottom: 88px;
@@ -1484,11 +1484,10 @@ body.dark {
   pointer-events: none;
   z-index: 52;
   opacity: 0;
-  animation: ykBubble 8s ease-in-out infinite;
-  animation-delay: 3s;
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   white-space: nowrap;
 }
+.yk-bubble:not(.notify):empty { display: none; }
 .yk-bubble::after {
   content: '';
   position: absolute;
@@ -1498,10 +1497,42 @@ body.dark {
   border-top-color: #fff8e8;
   border-bottom: 0;
 }
-@keyframes ykBubble {
-  0%, 90%, 100% { opacity: 0; }
-  10%, 30%       { opacity: 1; }
-  40%            { opacity: 0; }
+
+/* おっさんに追従するチャット吹き出し（おっさんごとに付く） */
+.yk-chat {
+  position: absolute;
+  bottom: 78px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff8e8;
+  color: #3a1810;
+  padding: 5px 10px;
+  border-radius: 14px;
+  font-size: 11px;
+  font-family: 'Yusei Magic',sans-serif;
+  pointer-events: none;
+  z-index: 52;
+  opacity: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  white-space: nowrap;
+  animation: ykChatBlink 9s ease-in-out infinite;
+}
+.yk-chat::after {
+  content: '';
+  position: absolute;
+  bottom: -5px; left: 50%;
+  margin-left: -5px;
+  width: 0; height: 0;
+  border: 5px solid transparent;
+  border-top-color: #fff8e8;
+  border-bottom: 0;
+}
+/* 左向きおっさんは親が scaleX(-1) なのでテキストを反転戻す */
+.yk-ossan.yk-o2 .yk-chat { transform: translateX(-50%) scaleX(-1); }
+@keyframes ykChatBlink {
+  0%, 5%   { opacity: 0; transform-origin: 50% 100%; }
+  10%, 35% { opacity: 1; }
+  45%, 100%{ opacity: 0; }
 }
 
 /* 画面下の路地影 */
@@ -1636,6 +1667,47 @@ body.dark {
 
 /* ── 星評価: 金色強調 ── */
 .rating-opt.selected { background: linear-gradient(180deg, #ffd27a, #c9a050) !important; color: #2a1410 !important; }
+
+/* ── 仲間の帳フィルター ── */
+.share-filters {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid #4a3020;
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+}
+.share-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px dashed rgba(122,74,42,0.3);
+}
+.share-filter-row:last-child { border-bottom: none; }
+.share-filter-label {
+  color: #c9a96a;
+  font-size: 11px;
+  font-family: 'Shippori Mincho',serif;
+  letter-spacing: 0.1em;
+  min-width: 42px;
+  margin-right: 4px;
+}
+.share-filter-row .chip {
+  background: rgba(0,0,0,0.4);
+  color: #a88850;
+  border: 1px solid #5a3a1a;
+  padding: 4px 9px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-family: 'Shippori Mincho',serif;
+  cursor: pointer;
+}
+.share-filter-row .chip.active {
+  background: linear-gradient(180deg,#c52828,#7a1414);
+  color: #ffd27a;
+  border-color: #ffd27a;
+}
 
 /* ── 視点切り替えバナーは非表示（🏮エンブレムタップのポップオーバーで切替） ── */
 #viewas-banner { display: none !important; }
@@ -1991,18 +2063,33 @@ body.dark {
   </svg>
 </div>
 
-<!-- 吹き出し（ランダムセリフ） -->
-<div class="yk-bubble" id="yk-bubble">ぷはぁ〜</div>
+<!-- 吹き出し（通知専用：未読メッセージがあれば固定表示） -->
+<div class="yk-bubble" id="yk-bubble"></div>
 
 <script>
 (function(){
-  var lines = ['ぷはぁ〜','もう一杯…','天国や…','ひっく','今夜は無礼講じゃ！','帰りたくない','マスター、同じの','師匠ぉ〜','ちょーし最高！','まだ行けるで','記憶が…ない'];
-  var bubble = document.getElementById('yk-bubble');
-  if(!bubble) return;
-  setInterval(function(){
-    bubble.textContent = lines[Math.floor(Math.random()*lines.length)];
-    bubble.style.left = (15 + Math.random()*55) + '%';
-  }, 8000);
+  // おっさんが言いそうなセリフ（多めに）
+  var lines = [
+    'ぷはぁ〜','もう一杯…','天国やぁ','ひっく','今夜は無礼講じゃ！',
+    '帰りたくない','マスター、同じの','師匠ぉ〜','ちょーし最高！','まだ行けるで',
+    '記憶が…ない','うぃ〜','ええ酒や〜','沁みるぅ〜','カラオケ行くか',
+    'ラーメン食いたい','酔いどれ最高','部長、もう一軒！','タクシー呼んで','足が…言うこと…',
+    '締めの蕎麦や','次は焼酎いこか','顔赤いて？','水ください','〆たい',
+    'お、いい飲みっぷり','割り勘な','あんた最高','これは効くで','明日休みや',
+    '記録更新',  '酒は文化','ええ夜やね','一献どうぞ','カンパーイ',
+    'これ何杯目？','明日も呑も','タイヤ交換せな','残業やった','社長奢り？'
+  ];
+  // 各おっさんに独自吹き出しを生やす
+  document.querySelectorAll('.yk-ossan').forEach(function(ossan, idx){
+    var bubble = document.createElement('div');
+    bubble.className = 'yk-chat';
+    bubble.style.animationDelay = (idx * -2.5) + 's';
+    ossan.appendChild(bubble);
+    function pickLine(){ return lines[Math.floor(Math.random()*lines.length)]; }
+    bubble.textContent = pickLine();
+    // 一定間隔でセリフを差し替え（タイミングはバラす）
+    setInterval(function(){ bubble.textContent = pickLine(); }, 5000 + idx * 1700);
+  });
 })();
 </script>
 
@@ -2362,6 +2449,29 @@ body.dark {
 <!-- シェアタブ -->
 <div id="tab-share" class="tab-content">
   <div class="share-tab-desc">仲間みんなの記録 <small style="opacity:.6;font-size:9px;">· sorted by rating</small></div>
+  <div class="share-filters" id="share-filters">
+    <div class="share-filter-row" id="share-filter-rating">
+      <span class="share-filter-label">評価</span>
+      <button class="chip active" onclick="setShareFilter('rating','all',this)">全部</button>
+      <button class="chip" onclick="setShareFilter('rating','★5',this)">★5</button>
+      <button class="chip" onclick="setShareFilter('rating','★4',this)">★4</button>
+      <button class="chip" onclick="setShareFilter('rating','★3',this)">★3</button>
+      <button class="chip" onclick="setShareFilter('rating','★2',this)">★2</button>
+      <button class="chip" onclick="setShareFilter('rating','★1',this)">★1</button>
+    </div>
+    <div class="share-filter-row" id="share-filter-region">
+      <span class="share-filter-label">地域</span>
+      <button class="chip active" onclick="setShareFilter('region','all',this)">全部</button>
+    </div>
+    <div class="share-filter-row" id="share-filter-type">
+      <span class="share-filter-label">タイプ</span>
+      <button class="chip active" onclick="setShareFilter('type','all',this)">全部</button>
+    </div>
+    <div class="share-filter-row" id="share-filter-author">
+      <span class="share-filter-label">登録者</span>
+      <button class="chip active" onclick="setShareFilter('author','all',this)">全部</button>
+    </div>
+  </div>
   <div id="share-container">
     <div class="loading-dots">
       <div class="dot"></div><div class="dot"></div><div class="dot"></div>
@@ -2812,39 +2922,93 @@ function renderCard(e) {
     </div>`;
 }
 
+// ── 共有タブのフィルタ状態 ────────────────────────────────────────────────
+let shareFilter = { rating: 'all', region: 'all', type: 'all', author: 'all' };
+
+function setShareFilter(key, val, el) {
+  shareFilter[key] = val;
+  const row = el.parentElement;
+  row.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderShareList();
+}
+
+function buildShareFilterChips() {
+  // region / type / author の動的選択肢を作成
+  const regions = Array.from(new Set(allEntries.map(e => e.region).filter(Boolean))).sort();
+  const types   = Array.from(new Set(allEntries.map(e => e.type).filter(Boolean))).sort();
+  const authors = Array.from(new Set(allEntries.map(e => e.author).filter(Boolean))).sort();
+
+  function fill(rowId, key, values) {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    // ラベルと「全部」chipは残し、それ以降を入れ替え
+    const allChip = row.querySelector('.chip');
+    row.querySelectorAll('.chip').forEach((c,i) => { if (i>0) c.remove(); });
+    values.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'chip' + (shareFilter[key]===v?' active':'');
+      b.textContent = key === 'region' ? regionEmoji(v)+' '+v : v;
+      b.onclick = function(){ setShareFilter(key, v, b); };
+      row.appendChild(b);
+    });
+    // 「全部」のクリックハンドラを再設定
+    if (allChip) {
+      allChip.onclick = function(){ setShareFilter(key,'all',allChip); };
+      allChip.classList.toggle('active', shareFilter[key]==='all');
+    }
+  }
+  fill('share-filter-region', 'region', regions);
+  fill('share-filter-type',   'type',   types);
+  fill('share-filter-author', 'author', authors);
+}
+
+function renderShareList() {
+  const container = document.getElementById('share-container');
+  let filtered = allEntries.filter(e => {
+    if (shareFilter.rating !== 'all' && e.rating !== shareFilter.rating) return false;
+    if (shareFilter.region !== 'all' && e.region !== shareFilter.region) return false;
+    if (shareFilter.type   !== 'all' && e.type   !== shareFilter.type)   return false;
+    if (shareFilter.author !== 'all' && e.author !== shareFilter.author) return false;
+    return true;
+  });
+  const rMap = { '★5': 5, '★4': 4, '★3': 3, '★2': 2, '★1': 1 };
+  filtered.sort((a, b) => (rMap[b.rating] || 0) - (rMap[a.rating] || 0));
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">🥃</div><div class="empty-title">該当なし</div></div>`;
+    return;
+  }
+  container.innerHTML = `<div class="share-list">${filtered.map(e => `
+    <div class="share-card" onclick="openModal('${e.id}')">
+      <div class="share-card-thumb">
+        ${e.imgUrl ? `<img src="${e.imgUrl}" alt="${e.name}" onerror="this.innerHTML='🥃'" />` : '🥃'}
+      </div>
+      <div class="share-card-body">
+        <div class="share-card-name">${e.name}</div>
+        ${e.distillery ? `<div class="share-card-distillery">${e.distillery}</div>` : ''}
+        <div class="share-card-meta">
+          ${e.rating ? `<span class="share-rating">${e.rating}</span>` : ''}
+          ${e.region ? `<span class="tag region">${regionEmoji(e.region)} ${e.region}</span>` : ''}
+          ${e.author ? `<span class="share-user">▸ ${e.author}</span>` : ''}
+        </div>
+        ${(Array.isArray(e.aroma) ? e.aroma.length > 0 : !!e.aroma) ? `<div style="font-size:11px;color:var(--gold-dark);margin-top:5px;line-height:1.5;font-style:italic;">🌸 ${(Array.isArray(e.aroma) ? e.aroma.join(' / ') : e.aroma).slice(0,50)}${(Array.isArray(e.aroma) ? e.aroma.join(' / ') : e.aroma).length>50?'…':''}</div>` : ''}
+        ${e.shopName ? `<div style="font-size:10px;color:var(--gold-deeper);margin-top:4px;font-family:'DM Mono',monospace;letter-spacing:0.05em;">📍 ${e.shopName}</div>` : ''}
+      </div>
+    </div>`).join('')}</div>`;
+}
+
 // ── 共有タブ ──────────────────────────────────────────────────────────────
 async function renderShare() {
   const container = document.getElementById('share-container');
   container.innerHTML = `<div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
   try {
     await loadEntries();
-    const sorted = [...allEntries].sort((a, b) => {
-      const rMap = { '★5': 5, '★4': 4, '★3': 3, '★2': 2, '★1': 1 };
-      return (rMap[b.rating] || 0) - (rMap[a.rating] || 0);
-    });
-
-    if (sorted.length === 0) {
-      container.innerHTML = `<div class="empty-state"><div class="empty-icon">🥃</div><div class="empty-title">No entries yet</div></div>`;
+    if (allEntries.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">🥃</div><div class="empty-title">まだ記録がありません</div></div>`;
       return;
     }
-
-    container.innerHTML = `<div class="share-list">${sorted.map(e => `
-      <div class="share-card" onclick="openModal('${e.id}')">
-        <div class="share-card-thumb">
-          ${e.imgUrl ? `<img src="${e.imgUrl}" alt="${e.name}" onerror="this.innerHTML='🥃'" />` : '🥃'}
-        </div>
-        <div class="share-card-body">
-          <div class="share-card-name">${e.name}</div>
-          ${e.distillery ? `<div class="share-card-distillery">${e.distillery}</div>` : ''}
-          <div class="share-card-meta">
-            ${e.rating ? `<span class="share-rating">${e.rating}</span>` : ''}
-            ${e.region ? `<span class="tag region">${regionEmoji(e.region)} ${e.region}</span>` : ''}
-            ${e.author ? `<span class="share-user">▸ ${e.author}</span>` : ''}
-          </div>
-          ${(Array.isArray(e.aroma) ? e.aroma.length > 0 : !!e.aroma) ? `<div style="font-size:11px;color:var(--gold-dark);margin-top:5px;line-height:1.5;font-style:italic;">🌸 ${(Array.isArray(e.aroma) ? e.aroma.join(' / ') : e.aroma).slice(0,50)}${(Array.isArray(e.aroma) ? e.aroma.join(' / ') : e.aroma).length>50?'…':''}</div>` : ''}
-          ${e.shopName ? `<div style="font-size:10px;color:var(--gold-deeper);margin-top:4px;font-family:'DM Mono',monospace;letter-spacing:0.05em;">📍 ${e.shopName}</div>` : ''}
-        </div>
-      </div>`).join('')}</div>`;
+    buildShareFilterChips();
+    renderShareList();
   } catch(e) {
     container.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">取得エラー</div></div>`;
   }
