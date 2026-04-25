@@ -579,24 +579,44 @@ body.dark #viewas-banner { background: var(--accent2); }
   position: relative;
 }
 .form-section-title {
-  font-family: 'DM Mono', monospace;
-  font-size: 9px;
-  font-weight: 500;
-  color: var(--gold-deeper);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
+  font-family: 'Shippori Mincho', serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.15em;
   margin-bottom: 14px;
+}
+.form-section-title small {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 8px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.25em;
+  color: var(--gold-deeper);
+  font-weight: 400;
+  vertical-align: middle;
+  opacity: 0.6;
 }
 .form-row { margin-bottom: 12px; }
 .form-row:last-child { margin-bottom: 0; }
 .form-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   margin-bottom: 6px;
   display: flex;
   align-items: center;
   gap: 4px;
-  font-family: 'Noto Sans JP', sans-serif;
+  font-family: 'Shippori Mincho', serif;
+  letter-spacing: 0.08em;
+}
+.form-label small {
+  font-size: 8px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.25em;
+  color: var(--gold-deeper);
+  opacity: 0.5;
+  font-weight: 400;
+  margin-left: 4px;
 }
 .form-label-desc {
   font-size: 10px;
@@ -2226,18 +2246,35 @@ body.dark {
 
   <!-- フォーム: 基本情報 -->
   <div class="form-card">
-    <div class="form-section-title">Basic Info</div>
+    <div class="form-section-title">基本情報 <small>BASIC INFO</small></div>
     <div class="form-row">
-      <div class="form-label">ウイスキー名 <span class="req">*</span></div>
+      <div class="form-label">カテゴリ <small>CATEGORY</small> <span class="req">*</span></div>
+      <select class="form-select" id="f-category" onchange="onCategoryChange()">
+        <option value="ウイスキー">🥃 ウイスキー</option>
+        <option value="日本酒">🍶 日本酒</option>
+        <option value="焼酎">🍶 焼酎</option>
+        <option value="ワイン">🍷 ワイン</option>
+        <option value="ビール">🍺 ビール</option>
+        <option value="ジン">🍸 ジン</option>
+        <option value="ウォッカ">🥂 ウォッカ</option>
+        <option value="ラム">🍹 ラム</option>
+        <option value="テキーラ">🥃 テキーラ</option>
+        <option value="リキュール">🍸 リキュール</option>
+        <option value="カクテル">🍹 カクテル</option>
+        <option value="その他">🍶 その他</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-label"><span id="f-name-label">銘柄名</span> <small>NAME</small> <span class="req">*</span></div>
       <input class="form-input" id="f-name" type="text" placeholder="例：山崎 12年" />
     </div>
     <div class="form-row">
-      <div class="form-label">蒸留所</div>
+      <div class="form-label"><span id="f-distillery-label">蒸留所</span> <small id="f-distillery-en">DISTILLERY</small></div>
       <input class="form-input" id="f-distillery" type="text" placeholder="例：山崎蒸留所" />
     </div>
     <div class="form-grid">
       <div class="form-row">
-        <div class="form-label">国・地域</div>
+        <div class="form-label">国・地域 <small>REGION</small></div>
         <select class="form-select" id="f-region">
           <option value="">選択</option>
           <option>スコットランド</option>
@@ -2245,29 +2282,26 @@ body.dark {
           <option>アイルランド</option>
           <option>アメリカ</option>
           <option>カナダ</option>
+          <option>フランス</option>
+          <option>イタリア</option>
+          <option>ドイツ</option>
           <option>その他</option>
         </select>
       </div>
       <div class="form-row">
-        <div class="form-label">タイプ</div>
+        <div class="form-label">タイプ <small>TYPE</small></div>
         <select class="form-select" id="f-type">
           <option value="">選択</option>
-          <option>シングルモルト</option>
-          <option>ブレンデッド</option>
-          <option>シングルグレーン</option>
-          <option>バーボン</option>
-          <option>ライウイスキー</option>
-          <option>その他</option>
         </select>
       </div>
     </div>
     <div class="form-grid">
-      <div class="form-row">
-        <div class="form-label">熟成年数</div>
+      <div class="form-row" id="f-age-row">
+        <div class="form-label"><span id="f-age-label">熟成年数</span> <small>AGE</small></div>
         <input class="form-input" id="f-age" type="number" placeholder="12" min="0" max="60" />
       </div>
       <div class="form-row">
-        <div class="form-label">アルコール度数 (%)</div>
+        <div class="form-label">アルコール度数 (%) <small>ABV</small></div>
         <input class="form-input" id="f-abv" type="number" placeholder="43" min="0" max="100" step="0.1" />
       </div>
     </div>
@@ -2275,9 +2309,9 @@ body.dark {
 
   <!-- フォーム: 評価 -->
   <div class="form-card">
-    <div class="form-section-title">Rating</div>
+    <div class="form-section-title">評価 <small>RATING</small></div>
     <div class="form-row">
-      <div class="form-label">総合評価</div>
+      <div class="form-label">総合評価 <small>RATING</small></div>
       <div class="rating-selector" id="rating-selector">
         <div class="rating-opt" onclick="setRating('★1',this)">★1</div>
         <div class="rating-opt" onclick="setRating('★2',this)">★2</div>
@@ -2290,9 +2324,9 @@ body.dark {
 
   <!-- フォーム: テイスティングノート -->
   <div class="form-card">
-    <div class="form-section-title">Tasting Notes</div>
+    <div class="form-section-title">テイスティングノート <small>TASTING NOTES</small></div>
     <div class="form-row">
-      <div class="form-label">香り（複数選択可）</div>
+      <div class="form-label">香り <small>NOSE</small>（複数選択可）</div>
       <div class="note-chips" id="aroma-chips">
         <div class="note-chip" data-note-type="aroma" data-val="フローラル" onclick="toggleNote('aroma','フローラル',this)">フローラル</div>
         <div class="note-chip" data-note-type="aroma" data-val="フルーティ" onclick="toggleNote('aroma','フルーティ',this)">フルーティ</div>
@@ -2313,7 +2347,7 @@ body.dark {
       </div>
     </div>
     <div class="form-row">
-      <div class="form-label">味（複数選択可）</div>
+      <div class="form-label">味 <small>PALATE</small>（複数選択可）</div>
       <div class="note-chips" id="taste-chips">
         <div class="note-chip" data-note-type="taste" data-val="甘口" onclick="toggleNote('taste','甘口',this)">甘口</div>
         <div class="note-chip" data-note-type="taste" data-val="辛口" onclick="toggleNote('taste','辛口',this)">辛口</div>
@@ -2334,7 +2368,7 @@ body.dark {
       </div>
     </div>
     <div class="form-row">
-      <div class="form-label">フィニッシュ（複数選択可）</div>
+      <div class="form-label">フィニッシュ <small>FINISH</small>（複数選択可）</div>
       <div class="note-chips" id="finish-chips">
         <div class="note-chip" data-note-type="finish" data-val="長い" onclick="toggleNote('finish','長い',this)">長い</div>
         <div class="note-chip" data-note-type="finish" data-val="短い" onclick="toggleNote('finish','短い',this)">短い</div>
@@ -2351,7 +2385,7 @@ body.dark {
       </div>
     </div>
     <div class="form-row">
-      <div class="form-label">メモ</div>
+      <div class="form-label">メモ <small>MEMO</small></div>
       <textarea class="form-textarea" id="f-memo" placeholder="購入場所、飲んだ機会など自由に"></textarea>
     </div>
   </div>
@@ -2364,19 +2398,19 @@ body.dark {
 
   <!-- 家呑みセクション -->
   <div class="form-card" id="section-home">
-    <div class="form-section-title">🏠 家呑み情報</div>
+    <div class="form-section-title">🏠 家呑み情報 <small>HOME</small></div>
     <div class="form-grid">
       <div class="form-row">
-        <div class="form-label">価格 (円)</div>
+        <div class="form-label">価格 (円) <small>PRICE</small></div>
         <input class="form-input" id="f-price" type="number" placeholder="6000" min="0" />
       </div>
       <div class="form-row">
-        <div class="form-label">購入日</div>
+        <div class="form-label">購入日 <small>DATE</small></div>
         <input class="form-input" id="f-date" type="date" />
       </div>
     </div>
     <div class="form-row">
-      <div class="form-label">ステータス</div>
+      <div class="form-label">ステータス <small>STATUS</small></div>
       <select class="form-select" id="f-status">
         <option value="">選択</option>
         <option>在庫あり</option>
@@ -2385,7 +2419,7 @@ body.dark {
       </select>
     </div>
     <div class="form-row">
-      <div class="form-label">飲み方</div>
+      <div class="form-label">飲み方 <small>STYLE</small></div>
       <select id="f-drinkstyle-home" class="form-select">
         <option value="">選択</option>
         <option value="ストレート">🥃 ストレート</option>
@@ -2403,9 +2437,9 @@ body.dark {
 
   <!-- 店呑みセクション -->
   <div class="form-card" id="section-bar" style="display:none">
-    <div class="form-section-title">🍸 店呑み情報</div>
+    <div class="form-section-title">🍸 店呑み情報 <small>BAR</small></div>
     <div class="form-row">
-      <div class="form-label">店名</div>
+      <div class="form-label">店名 <small>SHOP</small></div>
       <div class="shop-input-row">
         <input class="form-input" id="f-shopname" type="text" placeholder="Bar ○○"
           onfocus="showShopHistory()" oninput="filterShopHistory(this.value)" autocomplete="off" />
@@ -2414,13 +2448,13 @@ body.dark {
       </div>
     </div>
     <div class="form-row">
-      <div class="form-label">Google Maps URL</div>
+      <div class="form-label">Google マップ URL <small>MAPS</small></div>
       <input class="form-input" id="f-mapsurl" type="url" placeholder="https://maps.google.com/..." />
       <div class="form-label-desc">Mapsで検索後、URLをコピーして貼付</div>
     </div>
     <div class="form-grid">
       <div class="form-row">
-        <div class="form-label">飲み方</div>
+        <div class="form-label">飲み方 <small>STYLE</small></div>
         <select id="f-drinkstyle" class="form-select">
           <option value="">選択</option>
           <option value="ストレート">🥃 ストレート</option>
@@ -2434,7 +2468,7 @@ body.dark {
         </select>
       </div>
       <div class="form-row">
-        <div class="form-label">単価（円）</div>
+        <div class="form-label">単価（円） <small>UNIT PRICE</small></div>
         <input id="f-unitprice" type="number" class="form-input" placeholder="1500" />
       </div>
     </div>
@@ -2826,6 +2860,7 @@ function parseEntry(page) {
   return {
     id: page.id,
     createdTime: page.created_time,
+    category: getSelect('カテゴリ') || 'ウイスキー',
     name: getTitle('名前'),
     distillery: getText('蒸留所'),
     region: getSelect('国・地域'),
@@ -2847,6 +2882,65 @@ function parseEntry(page) {
     drinkStyle: getSelect('飲み方'),
     unitPrice: getNum('単価'),
   };
+}
+
+// ── カテゴリ別タイプ選択肢 ────────────────────────────────────────────────
+const CATEGORY_TYPES = {
+  'ウイスキー': ['シングルモルト','ブレンデッド','シングルグレーン','バーボン','ライウイスキー','その他'],
+  '日本酒':     ['純米大吟醸','純米吟醸','純米','大吟醸','吟醸','本醸造','普通酒','その他'],
+  '焼酎':       ['芋','麦','米','黒糖','蕎麦','泡盛','その他'],
+  'ワイン':     ['赤','白','ロゼ','スパークリング','甘口/デザート','その他'],
+  'ビール':     ['ラガー','ピルスナー','IPA','ペールエール','スタウト','ヴァイツェン','その他'],
+  'ジン':       ['ロンドンドライ','オールドトム','プリマス','クラフト','その他'],
+  'ウォッカ':   ['その他'],
+  'ラム':       ['ホワイト','ゴールド','ダーク','スパイス','その他'],
+  'テキーラ':   ['ブランコ','レポサド','アネホ','その他'],
+  'リキュール': ['その他'],
+  'カクテル':   ['その他'],
+  'その他':     ['その他']
+};
+const CATEGORY_DISTILLERY_LABEL = {
+  'ウイスキー': ['蒸留所','DISTILLERY'],
+  '日本酒':     ['酒蔵','BREWERY'],
+  '焼酎':       ['酒蔵','DISTILLERY'],
+  'ワイン':     ['ワイナリー','WINERY'],
+  'ビール':     ['ブルワリー','BREWERY'],
+  'ジン':       ['蒸留所','DISTILLERY'],
+  'ウォッカ':   ['蒸留所','DISTILLERY'],
+  'ラム':       ['蒸留所','DISTILLERY'],
+  'テキーラ':   ['蒸留所','DISTILLERY'],
+  'リキュール': ['製造元','MAKER'],
+  'カクテル':   ['店','BAR'],
+  'その他':     ['製造元','MAKER']
+};
+const CATEGORY_NAME_LABEL = {
+  'ウイスキー': '銘柄名','日本酒': '銘柄名','焼酎': '銘柄名',
+  'ワイン':     'ワイン名','ビール': '銘柄名','ジン': '銘柄名',
+  'ウォッカ':   '銘柄名','ラム': '銘柄名','テキーラ': '銘柄名',
+  'リキュール': '銘柄名','カクテル': 'カクテル名','その他': '銘柄名'
+};
+
+function onCategoryChange() {
+  const cat = document.getElementById('f-category').value || 'ウイスキー';
+  // タイプ選択肢を切り替え
+  const typeSel = document.getElementById('f-type');
+  if (typeSel) {
+    const cur = typeSel.value;
+    typeSel.innerHTML = '<option value="">選択</option>' +
+      (CATEGORY_TYPES[cat] || []).map(t => `<option ${t===cur?'selected':''}>${t}</option>`).join('');
+  }
+  // ラベル切り替え
+  const distLab = document.getElementById('f-distillery-label');
+  const distEn  = document.getElementById('f-distillery-en');
+  if (distLab && CATEGORY_DISTILLERY_LABEL[cat]) {
+    distLab.textContent = CATEGORY_DISTILLERY_LABEL[cat][0];
+    if (distEn) distEn.textContent = CATEGORY_DISTILLERY_LABEL[cat][1];
+  }
+  const nameLab = document.getElementById('f-name-label');
+  if (nameLab) nameLab.textContent = CATEGORY_NAME_LABEL[cat] || '銘柄名';
+  // 熟成年数行: ウイスキー以外は隠す
+  const ageRow = document.getElementById('f-age-row');
+  if (ageRow) ageRow.style.display = (cat === 'ウイスキー' || cat === 'ラム' || cat === 'テキーラ') ? '' : 'none';
 }
 
 // ── フィルター ────────────────────────────────────────────────────────────
@@ -3062,13 +3156,13 @@ function openModal(id) {
     ${specRows.length > 0 ? `<div class="modal-chips">${specRows.map(([label, val]) => `<span class="modal-chip">${label}: ${val}</span>`).join('')}</div>` : ''}
     ${((Array.isArray(e.aroma) ? e.aroma.length > 0 : !!e.aroma) || (Array.isArray(e.taste) ? e.taste.length > 0 : !!e.taste) || (Array.isArray(e.finish) ? e.finish.length > 0 : !!e.finish)) ? `
       <div class="modal-section">
-        <div class="modal-section-title">Tasting Notes</div>
-        ${(Array.isArray(e.aroma) ? e.aroma.length > 0 : !!e.aroma) ? `<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--gold-deeper);font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">Nose</div><div class="modal-note-chips">${(Array.isArray(e.aroma) ? e.aroma : [e.aroma]).map(n => `<span class="modal-note-chip">${n}</span>`).join('')}</div></div>` : ''}
-        ${(Array.isArray(e.taste) ? e.taste.length > 0 : !!e.taste) ? `<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--gold-deeper);font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">Palate</div><div class="modal-note-chips">${(Array.isArray(e.taste) ? e.taste : [e.taste]).map(n => `<span class="modal-note-chip">${n}</span>`).join('')}</div></div>` : ''}
-        ${(Array.isArray(e.finish) ? e.finish.length > 0 : !!e.finish) ? `<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--gold-deeper);font-family:'DM Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">Finish</div><div class="modal-note-chips">${(Array.isArray(e.finish) ? e.finish : [e.finish]).map(n => `<span class="modal-note-chip">${n}</span>`).join('')}</div></div>` : ''}
+        <div class="modal-section-title">テイスティングノート <small>TASTING NOTES</small></div>
+        ${(Array.isArray(e.aroma) ? e.aroma.length > 0 : !!e.aroma) ? `<div style="margin-bottom:10px;"><div style="font-size:11px;color:var(--gold-deeper);font-family:'Shippori Mincho',serif;letter-spacing:0.1em;margin-bottom:5px;">香り <small style="font-size:8px;opacity:.5;font-family:'DM Mono',monospace;">NOSE</small></div><div class="modal-note-chips">${(Array.isArray(e.aroma) ? e.aroma : [e.aroma]).map(n => `<span class="modal-note-chip">${n}</span>`).join('')}</div></div>` : ''}
+        ${(Array.isArray(e.taste) ? e.taste.length > 0 : !!e.taste) ? `<div style="margin-bottom:10px;"><div style="font-size:11px;color:var(--gold-deeper);font-family:'Shippori Mincho',serif;letter-spacing:0.1em;margin-bottom:5px;">味 <small style="font-size:8px;opacity:.5;font-family:'DM Mono',monospace;">PALATE</small></div><div class="modal-note-chips">${(Array.isArray(e.taste) ? e.taste : [e.taste]).map(n => `<span class="modal-note-chip">${n}</span>`).join('')}</div></div>` : ''}
+        ${(Array.isArray(e.finish) ? e.finish.length > 0 : !!e.finish) ? `<div style="margin-bottom:10px;"><div style="font-size:11px;color:var(--gold-deeper);font-family:'Shippori Mincho',serif;letter-spacing:0.1em;margin-bottom:5px;">フィニッシュ <small style="font-size:8px;opacity:.5;font-family:'DM Mono',monospace;">FINISH</small></div><div class="modal-note-chips">${(Array.isArray(e.finish) ? e.finish : [e.finish]).map(n => `<span class="modal-note-chip">${n}</span>`).join('')}</div></div>` : ''}
       </div>
     ` : ''}
-    ${e.memo ? `<div class="modal-section"><div class="modal-section-title">Memo</div><div class="modal-note-text">${e.memo}</div></div>` : ''}
+    ${e.memo ? `<div class="modal-section"><div class="modal-section-title">メモ <small>MEMO</small></div><div class="modal-note-text">${e.memo}</div></div>` : ''}
     ${shopSection}
   `;
 
