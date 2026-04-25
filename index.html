@@ -1648,6 +1648,15 @@ body.dark {
 .share-card-distillery { color: #a0b0d0 !important; }
 .share-rating { color: #ffd27a !important; }
 .share-user { color: #a0b0d0 !important; }
+.share-user-multi {
+  background: linear-gradient(90deg,rgba(255,210,122,0.18),rgba(197,40,40,0.15)) !important;
+  border: 1px solid #ffd27a !important;
+  color: #ffd27a !important;
+  padding: 3px 9px !important;
+  border-radius: 12px !important;
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(255,210,122,0.3);
+}
 .share-card-thumb { background: #0a0810 !important; }
 
 /* ── Modal（詳細）: 木札の看板 ── */
@@ -3072,7 +3081,13 @@ function renderShareList() {
     container.innerHTML = `<div class="empty-state"><div class="empty-icon">🥃</div><div class="empty-title">該当なし</div></div>`;
     return;
   }
-  container.innerHTML = `<div class="share-list">${filtered.map(e => `
+  container.innerHTML = `<div class="share-list">${filtered.map(e => {
+    const sameAlcoholEntries = findSimilarEntries(e.name, e.distillery);
+    const authors = Array.from(new Set([e.author, ...sameAlcoholEntries.map(x => x.author)].filter(Boolean)));
+    const authorChip = authors.length > 1
+      ? `<span class="share-user share-user-multi" title="同じ一杯を登録">▸ ${authors.join(' ・ ')}</span>`
+      : (e.author ? `<span class="share-user">▸ ${e.author}</span>` : '');
+    return `
     <div class="share-card" onclick="openModal('${e.id}')">
       <div class="share-card-thumb">
         ${e.imgUrl ? `<img src="${e.imgUrl}" alt="${e.name}" onerror="this.innerHTML='🥃'" />` : '🥃'}
@@ -3083,12 +3098,13 @@ function renderShareList() {
         <div class="share-card-meta">
           ${e.rating ? `<span class="share-rating">${e.rating}</span>` : ''}
           ${e.region ? `<span class="tag region">${regionEmoji(e.region)} ${e.region}</span>` : ''}
-          ${e.author ? `<span class="share-user">▸ ${e.author}</span>` : ''}
+          ${authorChip}
         </div>
         ${(Array.isArray(e.aroma) ? e.aroma.length > 0 : !!e.aroma) ? `<div style="font-size:11px;color:var(--gold-dark);margin-top:5px;line-height:1.5;font-style:italic;">🌸 ${(Array.isArray(e.aroma) ? e.aroma.join(' / ') : e.aroma).slice(0,50)}${(Array.isArray(e.aroma) ? e.aroma.join(' / ') : e.aroma).length>50?'…':''}</div>` : ''}
         ${e.shopName ? `<div style="font-size:10px;color:var(--gold-deeper);margin-top:4px;font-family:'DM Mono',monospace;letter-spacing:0.05em;">📍 ${e.shopName}</div>` : ''}
       </div>
-    </div>`).join('')}</div>`;
+    </div>`;
+  }).join('')}</div>`;
 }
 
 // ── 共有タブ ──────────────────────────────────────────────────────────────
@@ -3377,6 +3393,8 @@ async function doScan() {
       showToast('ラベルを認識できませんでした。手動で入力してください', '⚠️');
     } else {
       showToast(backImageData ? '表・裏から読み取りました！' : 'ラベルを読み取りました！', '✓');
+      // 自分の過去登録 / 友達の登録 と同じものが無いかチェック
+      checkDuplicateOnScan(data);
     }
   } catch(err) {
     showToast('読み取りに失敗しました: ' + err.message, '✕');
@@ -3405,6 +3423,14 @@ async function uploadFrontImage() {
 }
 
 function applyScannedData(data) {
+  // カテゴリを先に適用（タイプ選択肢が切り替わるため）
+  if (data.category) {
+    const catSel = document.getElementById('f-category');
+    if (catSel) {
+      catSel.value = data.category;
+      onCategoryChange();
+    }
+  }
   if (data.name)       document.getElementById('f-name').value = data.name;
   if (data.distillery) document.getElementById('f-distillery').value = data.distillery;
   if (data.region)     document.getElementById('f-region').value = data.region;
@@ -3416,6 +3442,53 @@ function applyScannedData(data) {
   if (Array.isArray(data.aroma)  && data.aroma.length)  applyNoteChips('aroma',  data.aroma,  selectedAroma);
   if (Array.isArray(data.taste)  && data.taste.length)  applyNoteChips('taste',  data.taste,  selectedTaste);
   if (Array.isArray(data.finish) && data.finish.length) applyNoteChips('finish', data.finish, selectedFinish);
+}
+
+// ── 重複チェック（スキャン後 / 自分の過去登録・友達の登録を確認） ─────────────
+function normalizeName(s) {
+  if (!s) return '';
+  return s.toString()
+    .replace(/[\u3000\s]+/g,'')
+    .replace(/[（(].*?[)）]/g,'')
+    .replace(/\d+年/g,'')
+    .replace(/[a-z]+/gi, m => m.toLowerCase())
+    .toLowerCase();
+}
+function findSimilarEntries(name, distillery) {
+  const normName = normalizeName(name);
+  const normDist = normalizeName(distillery);
+  if (!normName) return [];
+  return (allEntries || []).filter(e => {
+    const eN = normalizeName(e.name);
+    const eD = normalizeName(e.distillery);
+    if (!eN) return false;
+    // 銘柄名がほぼ一致 OR 銘柄名+蒸留所 一致
+    if (eN === normName) return true;
+    if (eN.includes(normName) || normName.includes(eN)) {
+      if (!normDist || !eD || eD === normDist || eD.includes(normDist) || normDist.includes(eD)) return true;
+    }
+    return false;
+  });
+}
+function checkDuplicateOnScan(data) {
+  const me = (function(){ try { return JSON.parse(localStorage.getItem('whisky_session')||'{}').name||''; } catch(e){return '';} })();
+  const matches = findSimilarEntries(data.name, data.distillery);
+  if (matches.length === 0) return;
+  const myMatches = matches.filter(m => m.author === me);
+  const otherMatches = matches.filter(m => m.author && m.author !== me);
+  let msg;
+  if (myMatches.length && otherMatches.length) {
+    const others = Array.from(new Set(otherMatches.map(m => m.author))).join('・');
+    msg = `あなたも ${others}さんも 既に登録済みの一杯！`;
+  } else if (myMatches.length) {
+    msg = '🍶 これは過去にあなたが登録済みの一杯です！';
+  } else if (otherMatches.length) {
+    const others = Array.from(new Set(otherMatches.map(m => m.author))).join('・');
+    msg = `${others}さんも 同じものを登録してるよ！`;
+  } else {
+    return;
+  }
+  setTimeout(() => showToast(msg, '👀'), 600);
 }
 
 function applyNoteChips(type, values, selectedArr) {
