@@ -208,13 +208,12 @@ body {
 .btn-logout { right: 14px; }
 .btn-theme  { left: 14px; font-size: 14px; padding: 3px 8px; }
 
-/* ── ヘッダー ── */
+/* ── ヘッダー（スクロールで流れる。固定しない） ── */
 .app-header {
   background: var(--s1);
   border-bottom: 1px solid var(--border);
   padding: 14px 16px 12px;
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 100;
   text-align: center;
 }
@@ -247,13 +246,13 @@ body {
   text-transform: uppercase;
 }
 
-/* ── タブバー ── */
+/* ── タブバー（最上部まで上げると貼り付く） ── */
 .tab-bar {
   display: flex;
   background: var(--s1);
-  border-bottom: 1px solid #1a1008;
+  border-bottom: 1px solid var(--border);
   position: sticky;
-  top: 95px;
+  top: 0;
   z-index: 99;
 }
 .tab-btn {
@@ -846,15 +845,15 @@ body.dark #viewas-banner { background: var(--accent2); }
 
 .modal-img {
   width: 100%;
-  max-height: 220px;
-  object-fit: cover;
-  background: #e4d0a0;
+  height: 420px;
+  background: #0e0c08;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 60px;
+  overflow: hidden;
 }
-.modal-img img { width: 100%; max-height: 220px; object-fit: cover; }
+.modal-img img { width: 100%; height: 100%; object-fit: contain; }
 /* モーダル写真追加エリア */
 .modal-add-photo {
   width: 100%;
@@ -1264,7 +1263,29 @@ body.dark #viewas-banner { background: var(--accent2); }
    ============================================ */
 @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
 
+/* ── ライトモード（デフォルト）: 暖かいクリーム + 琥珀 ── */
 :root {
+  --bg: #f4efe4;
+  --s1: #fbf7ee;
+  --s2: #ede6d6;
+  --s3: #e2d9c4;
+  --border: #dccfb6;
+  --border2: #c8b896;
+  --text: #2a2118;
+  --text-soft: #5a4a38;
+  --muted: #8a7858;
+  --accent: #9a6a28;
+  --accent2: #7a5118;
+  --gold-dark: #9a6a28;
+  --gold-deeper: #8a7858;
+  --gold-faint: #ede6d6;
+  --score: #9a6a28;
+  --danger: #b04838;
+  --success: #5a8048;
+  --badge-text: #fbf7ee;
+}
+/* ── ダークモード: Distiller風 暖かい暗茶 + 琥珀 ── */
+body.dark {
   --bg: #1a1612;
   --s1: #221d18;
   --s2: #2a241e;
@@ -1282,6 +1303,7 @@ body.dark #viewas-banner { background: var(--accent2); }
   --score: #d4b27a;
   --danger: #c46060;
   --success: #8ab070;
+  --badge-text: #1a1612;
 }
 body {
   background: var(--bg);
@@ -1289,12 +1311,6 @@ body {
   font-family: 'Source Sans 3','Noto Sans JP',-apple-system,sans-serif;
   font-feature-settings: 'cv11','ss01';
   letter-spacing: -0.005em;
-}
-body.dark { /* 既存ダーク切替APIは温存（同テーマで強化） */
-  --bg: #14110d;
-  --s1: #1a1612;
-  --s2: #221d18;
-  --s3: #2a241e;
 }
 
 /* ── ヘッダー ── */
@@ -1363,7 +1379,7 @@ body.dark { /* 既存ダーク切替APIは温存（同テーマで強化） */
 }
 .card-rating {
   background: var(--accent) !important;
-  color: #1a1612 !important;
+  color: var(--badge-text) !important;
   padding: 3px 8px !important;
   font-family: 'Source Sans 3',sans-serif !important;
   font-weight: 800 !important;
@@ -1413,7 +1429,7 @@ body.dark { /* 既存ダーク切替APIは温存（同テーマで強化） */
 /* ── ボタン類 ── */
 .btn-login, .btn-primary, .btn-save, button.btn-main {
   background: var(--accent) !important;
-  color: #1a1612 !important;
+  color: var(--badge-text) !important;
   box-shadow: none !important;
   border: 1px solid var(--accent) !important;
   letter-spacing: 0.05em !important;
@@ -1501,7 +1517,7 @@ body.dark { /* 既存ダーク切替APIは温存（同テーマで強化） */
 .note-chip.selected {
   background: var(--accent) !important;
   border-color: var(--accent) !important;
-  color: #1a1612 !important;
+  color: var(--badge-text) !important;
   font-weight: 600;
 }
 
@@ -1611,7 +1627,7 @@ body.dark { /* 既存ダーク切替APIは温存（同テーマで強化） */
 }
 .share-rating {
   background: var(--accent) !important;
-  color: #1a1612 !important;
+  color: var(--badge-text) !important;
   padding: 2px 7px !important;
   font-weight: 800 !important;
   font-family: 'Source Sans 3',sans-serif !important;
@@ -1684,7 +1700,7 @@ body.dark { /* 既存ダーク切替APIは温存（同テーマで強化） */
 /* ── 星評価選択 ── */
 .rating-opt.selected {
   background: var(--accent) !important;
-  color: #1a1612 !important;
+  color: var(--badge-text) !important;
   font-weight: 700;
 }
 
@@ -1727,7 +1743,7 @@ body.dark { /* 既存ダーク切替APIは温存（同テーマで強化） */
 }
 .share-filter-row .chip.active {
   background: var(--accent);
-  color: #1a1612;
+  color: var(--badge-text);
   border-color: var(--accent);
   font-weight: 600;
 }
@@ -1742,7 +1758,7 @@ body.dark { /* 既存ダーク切替APIは温存（同テーマで強化） */
   background: var(--accent);
   border: 1px solid var(--accent);
   border-radius: 4px;
-  color: #1a1612;
+  color: var(--badge-text);
   font-size: 13px;
   font-family: 'Source Sans 3', sans-serif;
   font-weight: 700;
@@ -1761,7 +1777,7 @@ body.dark { /* 既存ダーク切替APIは温存（同テーマで強化） */
   transform: translateX(-50%);
   bottom: auto;
   background: var(--accent);
-  color: #1a1612;
+  color: var(--badge-text);
   padding: 0;
   border-radius: 4px;
   font-size: 12.5px;
@@ -2005,7 +2021,7 @@ body.dark { /* 既存ダーク切替APIは温存（同テーマで強化） */
 /* 通知バナー（refined） */
 .yk-bubble.notify {
   background: var(--accent) !important;
-  color: #1a1612 !important;
+  color: var(--badge-text) !important;
   border: none !important;
   font-weight: 600 !important;
   box-shadow: 0 12px 36px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,162,106,0.4) !important;
@@ -2030,7 +2046,7 @@ body.dark { /* 既存ダーク切替APIは温存（同テーマで強化） */
   display: inline-block;
   width: 6px; height: 6px;
   border-radius: 50%;
-  background: #1a1612;
+  background: var(--badge-text);
   animation: ykNotifyPulse 1.4s ease-in-out infinite;
   margin: 0 !important;
   font-size: 0;
@@ -3918,11 +3934,12 @@ function hideOssanNotify() {
 // ── 引っ張って更新（Pull-to-Refresh） ─────────────────────────────────────
 (function setupPullToRefresh(){
   let startY = 0, pulling = false, active = false;
-  const threshold = 70;
+  const threshold = 130;   // 発動に必要な引っ張り量（大きめ＝誤爆しにくい）
+  const deadZone = 24;     // この量までは無反応（うっかり防止）
   const indicator = document.createElement('div');
   indicator.id = 'ptr-indicator';
-  indicator.innerHTML = '🔄 <span id="ptr-label">引っ張って更新</span>';
-  indicator.style.cssText = 'position:fixed;top:-50px;left:50%;transform:translateX(-50%);background:linear-gradient(180deg,#c52828,#7a1414);color:#ffd27a;padding:10px 20px;border-radius:24px;font-family:"Shippori Mincho",serif;font-size:13px;z-index:9998;box-shadow:0 4px 16px rgba(0,0,0,0.5);border:1px solid #ffd27a;transition:top 0.15s ease;pointer-events:none;white-space:nowrap;';
+  indicator.innerHTML = '<span id="ptr-label">引っ張って更新</span>';
+  indicator.style.cssText = 'position:fixed;top:-50px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--badge-text);padding:9px 18px;border-radius:4px;font-family:"Source Sans 3",sans-serif;font-weight:600;font-size:12.5px;z-index:9998;box-shadow:0 8px 24px rgba(0,0,0,0.4);transition:top 0.15s ease,opacity 0.15s;pointer-events:none;white-space:nowrap;opacity:0;';
   document.body.appendChild(indicator);
 
   function onStart(e){
@@ -3938,11 +3955,14 @@ function hideOssanNotify() {
     if (!pulling) return;
     const y = e.touches ? e.touches[0].clientY : e.clientY;
     const dy = y - startY;
-    if (dy <= 0) { indicator.style.top = '-50px'; active = false; return; }
-    if (document.scrollingElement.scrollTop > 0) { pulling = false; indicator.style.top = '-50px'; return; }
+    if (dy <= deadZone) { indicator.style.top = '-50px'; indicator.style.opacity = '0'; active = false; return; }
+    if (document.scrollingElement.scrollTop > 0) { pulling = false; indicator.style.top = '-50px'; indicator.style.opacity = '0'; return; }
     e.preventDefault && e.cancelable && e.preventDefault();
-    const pulled = Math.min(dy * 0.5, 100);
+    // deadZone を超えた分だけ、抵抗感を持たせて引っ張る（0.4倍）
+    const eff = (dy - deadZone) * 0.4;
+    const pulled = Math.min(eff, 80);
     indicator.style.top = (pulled - 50) + 'px';
+    indicator.style.opacity = '1';
     if (dy >= threshold) {
       active = true;
       document.getElementById('ptr-label').textContent = '離して更新';
@@ -3955,13 +3975,15 @@ function hideOssanNotify() {
     if (!pulling) return;
     pulling = false;
     if (active) {
-      indicator.style.top = '20px';
+      indicator.style.top = '16px';
+      indicator.style.opacity = '1';
       document.getElementById('ptr-label').textContent = '更新中…';
       refreshAll().finally(() => {
-        setTimeout(() => { indicator.style.top = '-50px'; }, 400);
+        setTimeout(() => { indicator.style.top = '-50px'; indicator.style.opacity = '0'; }, 500);
       });
     } else {
       indicator.style.top = '-50px';
+      indicator.style.opacity = '0';
     }
   }
   window.addEventListener('touchstart', onStart, { passive: true });
