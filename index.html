@@ -2138,6 +2138,21 @@ body {
 
 <!-- コレクションタブ -->
 <div id="tab-list" class="tab-content active">
+  <div class="filter-row" id="category-filter">
+    <div class="chip active" onclick="setFilter('category','all',this)">すべて</div>
+    <div class="chip" onclick="setFilter('category','ウイスキー',this)">ウイスキー</div>
+    <div class="chip" onclick="setFilter('category','日本酒',this)">日本酒</div>
+    <div class="chip" onclick="setFilter('category','焼酎',this)">焼酎</div>
+    <div class="chip" onclick="setFilter('category','ワイン',this)">ワイン</div>
+    <div class="chip" onclick="setFilter('category','ビール',this)">ビール</div>
+    <div class="chip" onclick="setFilter('category','ジン',this)">ジン</div>
+    <div class="chip" onclick="setFilter('category','ウォッカ',this)">ウォッカ</div>
+    <div class="chip" onclick="setFilter('category','ラム',this)">ラム</div>
+    <div class="chip" onclick="setFilter('category','テキーラ',this)">テキーラ</div>
+    <div class="chip" onclick="setFilter('category','リキュール',this)">リキュール</div>
+    <div class="chip" onclick="setFilter('category','カクテル',this)">カクテル</div>
+    <div class="chip" onclick="setFilter('category','その他',this)">その他</div>
+  </div>
   <div class="filter-row" id="status-filter">
     <div class="chip active" onclick="setFilter('status','all',this)">All</div>
     <div class="chip" onclick="setFilter('status','在庫あり',this)">在庫あり</div>
@@ -2145,13 +2160,8 @@ body {
     <div class="chip" onclick="setFilter('status','ウィッシュリスト',this)">Wishlist</div>
   </div>
   <div class="filter-row" id="region-filter">
-    <div class="chip active" onclick="setFilter('region','all',this)">All</div>
-    <div class="chip" onclick="setFilter('region','スコットランド',this)">Scotland</div>
-    <div class="chip" onclick="setFilter('region','日本',this)">Japan</div>
-    <div class="chip" onclick="setFilter('region','アイルランド',this)">Ireland</div>
-    <div class="chip" onclick="setFilter('region','アメリカ',this)">America</div>
-    <div class="chip" onclick="setFilter('region','カナダ',this)">Canada</div>
-    <div class="chip" onclick="setFilter('region','その他',this)">Other</div>
+    <div class="chip active" onclick="setFilter('region','all',this)">全地域</div>
+    <!-- 地域チップはデータから動的生成（buildListRegionChips） -->
   </div>
   <div id="list-container">
     <div class="loading-dots">
@@ -2440,6 +2450,10 @@ body {
 <div id="tab-share" class="tab-content">
   <div class="share-tab-desc">仲間みんなの記録 <small style="opacity:.6;font-size:9px;">· sorted by rating</small></div>
   <div class="share-filters" id="share-filters">
+    <div class="share-filter-row" id="share-filter-category">
+      <span class="share-filter-label">種類</span>
+      <button class="chip active" onclick="setShareFilter('category','all',this)">全部</button>
+    </div>
     <div class="share-filter-row" id="share-filter-rating">
       <span class="share-filter-label">評価</span>
       <button class="chip active" onclick="setShareFilter('rating','all',this)">全部</button>
@@ -2511,7 +2525,7 @@ let lastNotifiedMsgIds = new Set();
 
 // ── 状態 ──────────────────────────────────────────────────────────────────
 let allEntries = [];
-let currentFilter = { status: 'all', region: 'all' };
+let currentFilter = { category: 'all', status: 'all', region: 'all' };
 let selectedRating = '';
 let currentModalId = null;
 let editingId = null;
@@ -2716,6 +2730,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('login-pin').addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
   });
+  // カテゴリ初期化（タイプ選択肢・ノートチップをデフォルト=ウイスキーで構築）
+  try { if (typeof onCategoryChange === 'function') onCategoryChange(); } catch(e) {}
 });
 
 // ── ユーザー名（セッション管理に移行済み） ────────────────────────────────
@@ -2840,6 +2856,56 @@ function parseEntry(page) {
   };
 }
 
+// ── カテゴリ別テイスティングノート（香り/味/フィニッシュ） ──────────────────
+const NOTE_SETS = {
+  'ウイスキー': {
+    aroma:['フローラル','フルーティ','バニラ','キャラメル','ハチミツ','スモーキー','ピーティ','スパイシー','シェリー','オーク','ナッツ','チョコレート','シトラス','ハーブ','海塩','麦芽'],
+    taste:['甘口','辛口','まろやか','リッチ','ライト','フルーティ','スモーキー','スパイシー','バニラ','キャラメル','ドライフルーツ','ナッツ','チョコレート','シトラス','ミネラル','オーキー'],
+    finish:['長い','短い','甘い','スパイシー','スモーキー','ウォーム','ドライ','フルーティ','オーキー','ビター','なめらか','ペッパリー']
+  },
+  '日本酒': {
+    aroma:['吟醸香','フルーティ','フローラル','米','麹','メロン','バナナ','青リンゴ','ライチ','ハーブ','蜂蜜','乳酸','穀物'],
+    taste:['甘口','辛口','旨味','酸味','まろやか','すっきり','濃醇','淡麗','コク','フルーティ','米の甘み','キレ','ふくらみ'],
+    finish:['すっきり','長い','短い','キレ','甘い','辛い','余韻深い','なめらか','苦味']
+  },
+  '焼酎': {
+    aroma:['芋','麦','米','黒糖','華やか','香ばしい','フルーティ','土','穀物','花','黒麹'],
+    taste:['まろやか','すっきり','コク','甘味','辛口','旨味','軽快','濃醇','ロースト'],
+    finish:['すっきり','長い','短い','まろやか','余韻深い','キレ','ほろ苦']
+  },
+  'ワイン': {
+    aroma:['ベリー','チェリー','カシス','プラム','花','スミレ','スパイス','バニラ','樽','オーク','土','レザー','タバコ','柑橘','青草','ミネラル','蜂蜜','バター'],
+    taste:['果実味','酸味','タンニン','甘口','辛口','ミディアム','フルボディ','ライトボディ','まろやか','スパイシー','ミネラル','余韻','バランス'],
+    finish:['長い','短い','なめらか','タンニン','ドライ','フルーティ','スパイシー','余韻深い','酸味']
+  },
+  'ビール': {
+    aroma:['ホップ','モルト','柑橘','トロピカル','花','麦芽','カラメル','コーヒー','チョコ','フルーティ','スパイス','松','バナナ','エステル'],
+    taste:['苦味','甘味','酸味','コク','すっきり','フルーティ','モルティ','ホッピー','ドライ','クリーミー','麦の旨味'],
+    finish:['すっきり','苦味','ドライ','長い','短い','クリーミー','余韻深い','爽快']
+  },
+  'デフォルト': { // ジン/ウォッカ/ラム/テキーラ/リキュール/カクテル/その他
+    aroma:['フローラル','フルーティ','スパイス','ハーブ','柑橘','バニラ','甘い','スモーキー','ボタニカル','ジュニパー','ナッツ','ベリー','ミント','黒糖','アガベ'],
+    taste:['甘口','辛口','まろやか','フルーティ','スパイシー','すっきり','リッチ','ライト','ビター','酸味','ボタニカル'],
+    finish:['長い','短い','すっきり','甘い','ドライ','スパイシー','なめらか','余韻深い','爽快']
+  }
+};
+function noteSetFor(cat){ return NOTE_SETS[cat] || NOTE_SETS['デフォルト']; }
+function rebuildNoteChips(cat){
+  const set = noteSetFor(cat);
+  const selMap = { aroma: selectedAroma, taste: selectedTaste, finish: selectedFinish };
+  ['aroma','taste','finish'].forEach(function(type){
+    const wrap = document.getElementById(type+'-chips');
+    if(!wrap) return;
+    const sel = selMap[type] || [];
+    // 既存選択のうち、新セットに無い値も chip として残す（編集時のデータ保持）
+    const vals = set[type].slice();
+    sel.forEach(function(v){ if(vals.indexOf(v)<0) vals.push(v); });
+    wrap.innerHTML = vals.map(function(v){
+      return '<div class="note-chip'+(sel.indexOf(v)>=0?' selected':'')+'" data-note-type="'+type+'" data-val="'+v+'" onclick="toggleNote(\''+type+'\',\''+v+'\',this)">'+v+'</div>';
+    }).join('');
+  });
+}
+
 // ── カテゴリ別タイプ選択肢 ────────────────────────────────────────────────
 const CATEGORY_TYPES = {
   'ウイスキー': ['シングルモルト','ブレンデッド','シングルグレーン','バーボン','ライウイスキー','その他'],
@@ -2894,22 +2960,67 @@ function onCategoryChange() {
   }
   const nameLab = document.getElementById('f-name-label');
   if (nameLab) nameLab.textContent = CATEGORY_NAME_LABEL[cat] || '銘柄名';
-  // 熟成年数行: ウイスキー以外は隠す
+  // 年数フィールド: カテゴリで意味とラベルを変える
   const ageRow = document.getElementById('f-age-row');
-  if (ageRow) ageRow.style.display = (cat === 'ウイスキー' || cat === 'ラム' || cat === 'テキーラ') ? '' : 'none';
+  const ageLab = document.getElementById('f-age-label');
+  const ageInput = document.getElementById('f-age');
+  if (ageRow) {
+    if (cat === 'ワイン') {
+      ageRow.style.display = '';
+      if (ageLab) ageLab.textContent = 'ヴィンテージ(年)';
+      if (ageInput) { ageInput.placeholder = '2021'; ageInput.max = 2100; }
+    } else if (cat === 'ウイスキー' || cat === 'ラム' || cat === 'テキーラ' || cat === 'ブランデー') {
+      ageRow.style.display = '';
+      if (ageLab) ageLab.textContent = '熟成年数';
+      if (ageInput) { ageInput.placeholder = '12'; ageInput.max = 80; }
+    } else {
+      ageRow.style.display = 'none';
+    }
+  }
+  // テイスティングノートをカテゴリ別に作り直す
+  rebuildNoteChips(cat);
 }
 
 // ── フィルター ────────────────────────────────────────────────────────────
 function setFilter(type, val, el) {
   currentFilter[type] = val;
-  const groupId = type === 'status' ? 'status-filter' : 'region-filter';
+  const groupId = type + '-filter';  // category-filter / status-filter / region-filter
   document.querySelectorAll(`#${groupId} .chip`).forEach(c => c.classList.remove('active'));
   el.classList.add('active');
   renderList();
 }
 
+// 地域チップをデータから動的生成（全酒類の地域に対応）
+function buildListRegionChips() {
+  const row = document.getElementById('region-filter');
+  if (!row) return;
+  // カテゴリ絞り込み中は、そのカテゴリの地域だけ出す
+  const pool = (currentFilter.category && currentFilter.category !== 'all')
+    ? allEntries.filter(e => (e.category||'ウイスキー') === currentFilter.category)
+    : allEntries;
+  const regions = Array.from(new Set(pool.map(e => e.region).filter(Boolean))).sort();
+  // 「全地域」chipは残して以降を作り直す
+  row.querySelectorAll('.chip').forEach((c,i) => { if (i>0) c.remove(); });
+  // 現在の選択が候補に無ければ all に戻す
+  if (currentFilter.region !== 'all' && !regions.includes(currentFilter.region)) {
+    currentFilter.region = 'all';
+    const allChip = row.querySelector('.chip');
+    if (allChip) allChip.classList.add('active');
+  }
+  regions.forEach(r => {
+    const c = document.createElement('div');
+    c.className = 'chip' + (currentFilter.region === r ? ' active' : '');
+    c.textContent = r;
+    c.onclick = function(){ setFilter('region', r, this); };
+    row.appendChild(c);
+  });
+  // 地域が1種以下なら行を隠す
+  row.style.display = regions.length > 1 ? '' : 'none';
+}
+
 function getFilteredEntries() {
   return allEntries.filter(e => {
+    if (currentFilter.category !== 'all' && (e.category || 'ウイスキー') !== currentFilter.category) return false;
     if (currentFilter.status !== 'all' && e.status !== currentFilter.status) return false;
     if (currentFilter.region !== 'all' && e.region !== currentFilter.region) return false;
     return true;
@@ -2919,13 +3030,14 @@ function getFilteredEntries() {
 // ── リスト描画 ────────────────────────────────────────────────────────────
 function renderList() {
   const container = document.getElementById('list-container');
+  buildListRegionChips();
   const entries = getFilteredEntries();
 
   if (entries.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-icon">🥃</div>
-        <div class="empty-title">No entries yet</div>
+        <div class="empty-icon">◊</div>
+        <div class="empty-title">該当する記録がありません</div>
         <div class="empty-sub">「一杯追加」タブから登録してね</div>
       </div>`;
     return;
@@ -2992,20 +3104,33 @@ function renderCard(e) {
 }
 
 // ── 共有タブのフィルタ状態 ────────────────────────────────────────────────
-let shareFilter = { rating: 'all', region: 'all', type: 'all', author: 'all' };
+let shareFilter = { category: 'all', rating: 'all', region: 'all', type: 'all', author: 'all' };
 
 function setShareFilter(key, val, el) {
   shareFilter[key] = val;
   const row = el.parentElement;
   row.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
+  // カテゴリを変えたら、地域/タイプの候補をそのカテゴリ内に絞り直す
+  if (key === 'category') {
+    shareFilter.region = 'all';
+    shareFilter.type = 'all';
+    buildShareFilterChips();
+  }
   renderShareList();
 }
 
 function buildShareFilterChips() {
-  // region / type / author の動的選択肢を作成
-  const regions = Array.from(new Set(allEntries.map(e => e.region).filter(Boolean))).sort();
-  const types   = Array.from(new Set(allEntries.map(e => e.type).filter(Boolean))).sort();
+  // category / region / type / author の動的選択肢を作成
+  // タイプ/地域はカテゴリ絞り込み中ならそのカテゴリ内のみ
+  const catPool = (shareFilter.category && shareFilter.category !== 'all')
+    ? allEntries.filter(e => (e.category||'ウイスキー') === shareFilter.category)
+    : allEntries;
+  const cats    = Array.from(new Set(allEntries.map(e => e.category || 'ウイスキー').filter(Boolean)));
+  const CAT_ORDER = ['ウイスキー','日本酒','焼酎','ワイン','ビール','ジン','ウォッカ','ラム','テキーラ','リキュール','カクテル','その他'];
+  cats.sort((a,b)=>CAT_ORDER.indexOf(a)-CAT_ORDER.indexOf(b));
+  const regions = Array.from(new Set(catPool.map(e => e.region).filter(Boolean))).sort();
+  const types   = Array.from(new Set(catPool.map(e => e.type).filter(Boolean))).sort();
   const authors = Array.from(new Set(allEntries.map(e => e.author).filter(Boolean))).sort();
 
   function fill(rowId, key, values) {
@@ -3017,7 +3142,7 @@ function buildShareFilterChips() {
     values.forEach(v => {
       const b = document.createElement('button');
       b.className = 'chip' + (shareFilter[key]===v?' active':'');
-      b.textContent = key === 'region' ? regionEmoji(v)+' '+v : v;
+      b.textContent = v;
       b.onclick = function(){ setShareFilter(key, v, b); };
       row.appendChild(b);
     });
@@ -3027,6 +3152,7 @@ function buildShareFilterChips() {
       allChip.classList.toggle('active', shareFilter[key]==='all');
     }
   }
+  fill('share-filter-category', 'category', cats);
   fill('share-filter-region', 'region', regions);
   fill('share-filter-type',   'type',   types);
   fill('share-filter-author', 'author', authors);
@@ -3035,6 +3161,7 @@ function buildShareFilterChips() {
 function renderShareList() {
   const container = document.getElementById('share-container');
   let filtered = allEntries.filter(e => {
+    if (shareFilter.category !== 'all' && (e.category||'ウイスキー') !== shareFilter.category) return false;
     if (shareFilter.rating !== 'all' && e.rating !== shareFilter.rating) return false;
     if (shareFilter.region !== 'all' && e.region !== shareFilter.region) return false;
     if (shareFilter.type   !== 'all' && e.type   !== shareFilter.type)   return false;
@@ -3221,10 +3348,18 @@ function editEntry() {
   switchTab('add');
 
   editingId = e.id;
+  // 先に選択中ノートをセット（onCategoryChange のチップ再生成で保持される）
+  selectedAroma = [...(e.aroma || [])];
+  selectedTaste = [...(e.taste || [])];
+  selectedFinish = [...(e.finish || [])];
+  // カテゴリを先に適用 → タイプ選択肢・ノートチップ・ラベルがそのカテゴリ用に再構成
+  const catSel = document.getElementById('f-category');
+  if (catSel) { catSel.value = e.category || 'ウイスキー'; onCategoryChange(); }
+
   document.getElementById('f-name').value = e.name;
   document.getElementById('f-distillery').value = e.distillery;
   document.getElementById('f-region').value = e.region;
-  document.getElementById('f-type').value = e.type;
+  document.getElementById('f-type').value = e.type;   // onCategoryChange後なので選択肢が存在
   document.getElementById('f-age').value = e.age ?? '';
   document.getElementById('f-abv').value = e.abv ?? '';
   document.getElementById('f-memo').value = e.memo;
@@ -3245,13 +3380,6 @@ function editEntry() {
     document.getElementById('f-drinkstyle-home').value = e.drinkStyle || '';
     document.getElementById('f-imgurl').value = e.imgUrl;
   }
-
-  selectedAroma = [...(e.aroma || [])];
-  selectedTaste = [...(e.taste || [])];
-  selectedFinish = [...(e.finish || [])];
-  document.querySelectorAll('[data-note-type="aroma"]').forEach(c => c.classList.toggle('selected', selectedAroma.includes(c.dataset.val)));
-  document.querySelectorAll('[data-note-type="taste"]').forEach(c => c.classList.toggle('selected', selectedTaste.includes(c.dataset.val)));
-  document.querySelectorAll('[data-note-type="finish"]').forEach(c => c.classList.toggle('selected', selectedFinish.includes(c.dataset.val)));
 
   if (e.rating) {
     selectedRating = e.rating;
@@ -3680,6 +3808,9 @@ function resetForm() {
   selectedFinish = [];
   editingId = null;
   document.querySelectorAll('.rating-opt').forEach(opt => opt.classList.remove('selected'));
+  // カテゴリをウイスキーに戻し、タイプ選択肢・ノートチップを初期化
+  const catSel = document.getElementById('f-category');
+  if (catSel) { catSel.value = 'ウイスキー'; onCategoryChange(); }
   document.querySelectorAll('.note-chip').forEach(c => c.classList.remove('selected'));
   frontImageData = null;
   backImageData = null;
