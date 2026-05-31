@@ -1378,6 +1378,8 @@ body {
   margin-top: 2px !important;
 }
 .card-rating {
+  display: inline-block !important;
+  align-self: flex-start !important;
   background: var(--accent) !important;
   color: var(--badge-text) !important;
   padding: 3px 8px !important;
@@ -1388,6 +1390,7 @@ body {
   border-radius: 3px !important;
   line-height: 1 !important;
 }
+.card-rating::before { content: '★ '; font-size: 10px; opacity: 0.8; }
 .card-tag {
   border: 1px solid var(--border2) !important;
   color: var(--text-soft) !important;
@@ -2096,7 +2099,7 @@ body {
 <div id="inbox-overlay" class="msg-overlay" onclick="closeInbox(event)">
   <div class="msg-sheet" onclick="event.stopPropagation()">
     <div class="msg-sheet-handle"></div>
-    <div class="msg-sheet-title">📮 文箱 <small>INBOX</small></div>
+    <div class="msg-sheet-title">文箱 <small>INBOX</small></div>
     <div id="inbox-list" class="inbox-list"></div>
     <button class="msg-close-btn" onclick="closeInbox()">閉じる</button>
   </div>
@@ -2106,7 +2109,7 @@ body {
 <div id="compose-overlay" class="msg-overlay" onclick="closeCompose(event)">
   <div class="msg-sheet" onclick="event.stopPropagation()">
     <div class="msg-sheet-handle"></div>
-    <div class="msg-sheet-title">✉️ 一杯をすすめる <small>RECOMMEND</small></div>
+    <div class="msg-sheet-title">一杯をすすめる <small>RECOMMEND</small></div>
     <div class="compose-whisky" id="compose-whisky-info"></div>
     <div class="msg-label">誰に送る？ <small>TO</small></div>
     <select id="compose-recipient" class="msg-select"></select>
@@ -2129,7 +2132,7 @@ body {
 
 <!-- 視点切り替えポップオーバー（管理者専用・ヘッダーエンブレムから起動） -->
 <div id="viewas-popover">
-  <button class="viewas-item" id="viewas-all" onclick="setViewAs(null)">👑 全員表示（管理者）</button>
+  <button class="viewas-item" id="viewas-all" onclick="setViewAs(null)">全員表示（管理者）</button>
   <div id="viewas-guest-list"><!-- JSで動的生成 --></div>
 </div>
 
@@ -2143,12 +2146,12 @@ body {
   </div>
   <div class="filter-row" id="region-filter">
     <div class="chip active" onclick="setFilter('region','all',this)">All</div>
-    <div class="chip" onclick="setFilter('region','スコットランド',this)">🏴 Scotland</div>
-    <div class="chip" onclick="setFilter('region','日本',this)">🇯🇵 Japan</div>
-    <div class="chip" onclick="setFilter('region','アイルランド',this)">🇮🇪 Ireland</div>
-    <div class="chip" onclick="setFilter('region','アメリカ',this)">🇺🇸 America</div>
-    <div class="chip" onclick="setFilter('region','カナダ',this)">🇨🇦 Canada</div>
-    <div class="chip" onclick="setFilter('region','その他',this)">🌍 Other</div>
+    <div class="chip" onclick="setFilter('region','スコットランド',this)">Scotland</div>
+    <div class="chip" onclick="setFilter('region','日本',this)">Japan</div>
+    <div class="chip" onclick="setFilter('region','アイルランド',this)">Ireland</div>
+    <div class="chip" onclick="setFilter('region','アメリカ',this)">America</div>
+    <div class="chip" onclick="setFilter('region','カナダ',this)">Canada</div>
+    <div class="chip" onclick="setFilter('region','その他',this)">Other</div>
   </div>
   <div id="list-container">
     <div class="loading-dots">
@@ -2410,13 +2413,13 @@ body {
         <div class="form-label">飲み方 <small>STYLE</small></div>
         <select id="f-drinkstyle" class="form-select">
           <option value="">選択</option>
-          <option value="ストレート">🥃 ストレート</option>
-          <option value="ロック">🧊 ロック</option>
-          <option value="ハイボール">🫧 ハイボール</option>
-          <option value="水割り">💧 水割り</option>
-          <option value="ソーダ割り">🫧 ソーダ割り</option>
+          <option value="ストレート">ストレート</option>
+          <option value="ロック">ロック</option>
+          <option value="ハイボール">ハイボール</option>
+          <option value="水割り">水割り</option>
+          <option value="ソーダ割り">ソーダ割り</option>
           <option value="トワイス・アップ">トワイス・アップ</option>
-          <option value="ボトルキープ">🍾 ボトルキープ</option>
+          <option value="ボトルキープ">ボトルキープ</option>
           <option value="その他">その他</option>
         </select>
       </div>
@@ -2476,7 +2479,7 @@ body {
     <div id="modal-img-area"></div>
     <div class="modal-body" id="modal-body"></div>
     <div style="padding: 16px 16px 0;">
-      <button id="modal-recommend-btn" onclick="openComposeFromModal()" class="btn-recommend-big">🍶 友達にこの一杯を薦める</button>
+      <button id="modal-recommend-btn" onclick="openComposeFromModal()" class="btn-recommend-big">友達にこの一杯を薦める</button>
     </div>
     <div class="modal-actions">
       <button class="btn-close" onclick="closeModal()">閉じる</button>
@@ -2625,7 +2628,7 @@ async function loadGuestList() {
     // ポップオーバーにゲスト一覧を生成
     const list = document.getElementById('viewas-guest-list');
     list.innerHTML = guests.map(g =>
-      `<button class="viewas-item" onclick="setViewAs('${g}')">👤 ${g}</button>`
+      `<button class="viewas-item" onclick="setViewAs('${g}')">${g}</button>`
     ).join('');
 
     // ヘッダーエンブレムをタップ可能に（こっそり）
