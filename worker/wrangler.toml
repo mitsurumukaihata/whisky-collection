@@ -1,0 +1,7 @@
+name = "whisky-proxy"
+main = "whisky-worker.js"
+compatibility_date = "2026-03-27"
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "whisky-images"
