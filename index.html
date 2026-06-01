@@ -271,8 +271,8 @@ body {
   transition: all 0.15s;
 }
 .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-.tab-jp { display:block; font-size:14px; font-family:'Shippori Mincho',serif; font-weight:700; letter-spacing:0.15em; line-height:1.1; }
-.tab-en { display:block; font-size:8px; opacity:0.55; letter-spacing:0.2em; margin-top:2px; font-family:'DM Mono',monospace; }
+.tab-jp { display:block; font-size:14px; font-family:'Source Sans 3','Noto Sans JP',sans-serif; font-weight:700; letter-spacing:0.08em; line-height:1.1; }
+.tab-en { display:block; font-size:8px; opacity:0.55; letter-spacing:0.22em; margin-top:2px; font-family:'Geist Mono',monospace; }
 
 /* ── タブコンテンツ ── */
 .tab-content { display: none; padding: 14px 14px 80px; }
@@ -2090,7 +2090,7 @@ body {
   <span class="header-emblem"></span>
   <div class="header-title">酔いどれ帳</div>
   <div class="header-line"></div>
-  <div class="header-sub" id="header-username">WHISKY JOURNAL</div>
+  <div class="header-sub" id="header-username">DRINK JOURNAL</div>
   <button class="btn-theme" id="btn-theme" onclick="toggleTheme()">🌙</button>
   <button class="btn-logout" onclick="doLogout()">ログアウト</button>
 </header>
@@ -2122,9 +2122,9 @@ body {
 
 <!-- タブバー -->
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('list')"><span class="tab-jp">一覧</span><span class="tab-en">COLLECTION</span></button>
-  <button class="tab-btn" onclick="switchTab('add')"><span class="tab-jp">一杯追加</span><span class="tab-en">ADD</span></button>
-  <button class="tab-btn" onclick="switchTab('share')"><span class="tab-jp">仲間の帳</span><span class="tab-en">SHARE</span></button>
+  <button class="tab-btn active" onclick="switchTab('list')"><span class="tab-jp">コレクション</span><span class="tab-en">COLLECTION</span></button>
+  <button class="tab-btn" onclick="switchTab('add')"><span class="tab-jp">追加</span><span class="tab-en">ADD</span></button>
+  <button class="tab-btn" onclick="switchTab('share')"><span class="tab-jp">みんな</span><span class="tab-en">FRIENDS</span></button>
 </div>
 
 <!-- 視点切り替えバナー（管理者が viewAs モード時に表示） -->
