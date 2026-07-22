@@ -1261,7 +1261,7 @@ body.dark #viewas-banner { background: var(--accent2); }
    Distiller — マガジン・ダーク（大人向けプレミアム）
    2026/5/20 reskin: Distiller.com / Decanter inspired
    ============================================ */
-@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Noto+Serif+JP:wght@500;600;700&display=swap');
 
 /* ── ライトモード（デフォルト）: 暖かいクリーム + 琥珀 ── */
 :root {
@@ -2717,9 +2717,13 @@ body {
       <input class="form-input" id="insta-handle" type="text" placeholder="@your_account" oninput="onHandleInput()" />
     </div>
     <div class="insta-actions">
-      <button class="btn-dl-all" onclick="downloadAllSlides()">すべて保存</button>
-      <button class="btn-share-all" onclick="shareAllSlides()">まとめて共有</button>
+      <button class="btn-dl-all" id="btn-prepare" onclick="prepareSlides()">画像を作る</button>
     </div>
+    <div class="insta-actions" id="insta-actions-ready" style="display:none">
+      <button class="btn-dl-all" id="btn-save-all" onclick="shareAllSlides()">写真に保存</button>
+      <button class="btn-share-all" id="btn-dl-all" onclick="downloadAllSlides()">PCへDL</button>
+    </div>
+    <div id="insta-status"></div>
     <div class="insta-preview-list" id="insta-preview-list"></div>
   </div>
 </div>
@@ -4227,6 +4231,20 @@ function closeInstaExport(){
 function renderInstaSlides(){
   if (!instaEntry) return;
   instaSlides = buildInstaSlides(instaEntry);
+  // 作り直したらキャッシュは無効
+  instaBlobs = [];
+  const ready = document.getElementById('insta-actions-ready');
+  if (ready) ready.style.display = 'none';
+  const pbtn = document.getElementById('btn-prepare');
+  if (pbtn) pbtn.textContent = '画像を作る';
+  // 端末に応じてボタン表記を変える
+  const saveBtn = document.getElementById('btn-save-all');
+  const dlBtn = document.getElementById('btn-dl-all');
+  if (saveBtn && dlBtn) {
+    if (isMobileDevice()) { saveBtn.textContent = '写真に保存（まとめて）'; dlBtn.style.display = 'none'; }
+    else { saveBtn.textContent = '共有'; dlBtn.style.display = ''; dlBtn.textContent = 'すべてダウンロード'; }
+  }
+  setInstaStatus('');
   // 実寸ステージ
   const stage = document.getElementById('insta-stage');
   stage.innerHTML = instaSlides.map(s => s.html).join('');
@@ -4255,6 +4273,13 @@ function scaleInstaThumbs(){
 window.addEventListener('resize', () => { if (instaEntry) scaleInstaThumbs(); });
 
 // ── PNG化 ──
+// フォント読込＆画像読込を待ってから焼く（別フォントで固まるのを防ぐ）
+async function waitAssetsReady(){
+  try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch(e){}
+  const imgs = Array.from(document.querySelectorAll('#insta-stage img'));
+  await Promise.all(imgs.map(im => im.complete ? Promise.resolve()
+    : new Promise(res => { im.onload = res; im.onerror = res; })));
+}
 async function slideToBlob(index){
   const stage = document.getElementById('insta-stage');
   const el = stage.children[index];
@@ -4266,48 +4291,96 @@ async function slideToBlob(index){
   });
   return await new Promise(res => canvas.toBlob(res, 'image/png'));
 }
+
+// 生成済みBlobのキャッシュ（iOSは「タップ→即共有」でないと弾かれるため事前に作る）
+let instaBlobs = [];
+function setInstaStatus(msg, done){
+  const el = document.getElementById('insta-status');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.style.cssText = 'font-size:12px;margin-bottom:14px;letter-spacing:0.02em;color:' +
+    (done ? 'var(--accent)' : 'var(--muted)');
+}
+async function prepareSlides(){
+  const btn = document.getElementById('btn-prepare');
+  if (btn) { btn.disabled = true; btn.textContent = '作成中…'; }
+  instaBlobs = [];
+  try {
+    setInstaStatus('フォントと写真を読み込み中…');
+    await waitAssetsReady();
+    for (let i = 0; i < instaSlides.length; i++){
+      setInstaStatus('画像を作成中… ' + (i+1) + ' / ' + instaSlides.length);
+      instaBlobs.push(await slideToBlob(i));
+      await new Promise(r => setTimeout(r, 30)); // 端末の描画を挟む
+    }
+    document.getElementById('insta-actions-ready').style.display = 'flex';
+    setInstaStatus(instaSlides.length + '枚できました。「写真に保存」を押してね', true);
+    if (btn) btn.textContent = '作り直す';
+  } catch(err) {
+    setInstaStatus('作成に失敗: ' + err.message);
+    if (btn) btn.textContent = '画像を作る';
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+function instaFiles(){
+  return instaBlobs.map((b,i) => new File([b], slideFileName(i), { type: 'image/png' }));
+}
 function slideFileName(i){
   const base = (instaEntry && instaEntry.name ? instaEntry.name : 'slide').replace(/[\\/:*?"<>|\s]+/g,'_').slice(0,40);
   return base + '_' + String(i+1).padStart(2,'0') + '.png';
 }
+// 1枚だけ（キャッシュがあれば使う）
 async function downloadSlide(i){
   try {
-    showToast('画像を作成中…', '⏳');
-    const blob = await slideToBlob(i);
+    let blob = instaBlobs[i];
+    if (!blob) { showToast('画像を作成中…', '⏳'); await waitAssetsReady(); blob = await slideToBlob(i); }
+    // スマホは共有シート経由（写真に保存できる）、PCはダウンロード
+    const file = new File([blob], slideFileName(i), { type: 'image/png' });
+    if (isMobileDevice() && navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file] });
+      return;
+    }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = slideFileName(i);
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url), 4000);
     showToast(slideFileName(i) + ' を保存', '✓');
-  } catch(err) { showToast('作成に失敗: ' + err.message, '⚠'); }
+  } catch(err) {
+    if (err && err.name === 'AbortError') return;
+    showToast('失敗: ' + err.message, '⚠');
+  }
 }
+function isMobileDevice(){
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+         (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent)); // iPadOS
+}
+// PC向け: 連続ダウンロード（キャッシュ必須）
 async function downloadAllSlides(){
-  try {
-    for (let i=0;i<instaSlides.length;i++){
-      showToast('作成中 ' + (i+1) + '/' + instaSlides.length, '⏳');
-      const blob = await slideToBlob(i);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = slideFileName(i);
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(()=>URL.revokeObjectURL(url), 6000);
-      await new Promise(r => setTimeout(r, 350)); // 連続DLのブロック回避
-    }
-    showToast('全' + instaSlides.length + '枚を保存', '✓');
-  } catch(err) { showToast('作成に失敗: ' + err.message, '⚠'); }
+  if (!instaBlobs.length) { showToast('先に「画像を作る」を押してね', '⚠'); return; }
+  for (let i=0;i<instaBlobs.length;i++){
+    const url = URL.createObjectURL(instaBlobs[i]);
+    const a = document.createElement('a');
+    a.href = url; a.download = slideFileName(i);
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 6000);
+    await new Promise(r => setTimeout(r, 350));
+  }
+  showToast('全' + instaBlobs.length + '枚を保存', '✓');
 }
+// スマホ向け: まとめて写真に保存（タップから即 share するのが肝）
 async function shareAllSlides(){
-  if (!navigator.canShare) { showToast('この端末は共有に未対応。「すべて保存」を使ってね', '⚠'); return; }
+  if (!instaBlobs.length) { showToast('先に「画像を作る」を押してね', '⚠'); return; }
+  const files = instaFiles();
+  if (!navigator.canShare || !navigator.canShare({ files })) {
+    // 共有不可な端末はダウンロードにフォールバック
+    showToast('この端末は共有非対応。順に保存します', '⚠');
+    return downloadAllSlides();
+  }
   try {
-    showToast('画像を作成中…', '⏳');
-    const files = [];
-    for (let i=0;i<instaSlides.length;i++){
-      const blob = await slideToBlob(i);
-      files.push(new File([blob], slideFileName(i), { type: 'image/png' }));
-    }
-    if (!navigator.canShare({ files })) { showToast('この端末は画像共有に未対応', '⚠'); return; }
-    await navigator.share({ files, title: instaEntry.name || '' });
+    await navigator.share({ files, title: (instaEntry && instaEntry.name) || '' });
+    setInstaStatus('保存できたら Instagram で5枚選んでカルーセル投稿してね', true);
   } catch(err) {
     if (err && err.name === 'AbortError') return;
     showToast('共有に失敗: ' + err.message, '⚠');
