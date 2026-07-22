@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アイコン候補</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Mono:wght@400;500&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#0e0a06; font-family:'Noto Sans JP',sans-serif; padding:24px 16px; }
+h1 { color:#5a3a1a; text-align:center; font-size:11px; letter-spacing:.3em; text-transform:uppercase; margin-bottom:24px; font-family:'DM Mono',monospace; }
+.grid { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; max-width:600px; margin:0 auto; }
+.item { display:flex; flex-direction:column; align-items:center; gap:10px; }
+.label { color:#5a3a1a; font-size:9px; letter-spacing:.15em; text-transform:uppercase; font-family:'DM Mono',monospace; text-align:center; }
+svg { border-radius:22%; box-shadow:0 8px 32px rgba(0,0,0,.6); }
+</style>
+</head>
+<body>
+<h1>Whisky Journal — Icon Candidates</h1>
+<div class="grid">
+
+<!-- ① Classic Glass -->
+<div class="item">
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2a1a0a"/>
+      <stop offset="100%" stop-color="#16100a"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e8a840" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#c07010" stop-opacity="0.7"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" fill="url(#bg1)"/>
+  <!-- 外枠 -->
+  <rect x="4" y="4" width="112" height="112" rx="20" fill="none" stroke="#4a2e10" stroke-width="0.5"/>
+  <!-- グラス -->
+  <path d="M42 28 L78 28 L70 78 L65 82 L65 90 L55 90 L55 82 L50 78 Z" fill="none" stroke="#7a5020" stroke-width="1.5"/>
+  <!-- 液体 -->
+  <path d="M50 72 L70 72 L70 78 L65 82 L55 82 L50 78 Z" fill="url(#amber)" opacity="0.8"/>
+  <path d="M47 58 Q60 62 73 58 L70 72 L50 72 Z" fill="url(#amber)" opacity="0.5"/>
+  <!-- ハイライト -->
+  <line x1="48" y1="35" x2="48" y2="60" stroke="#e8c880" stroke-width="1" opacity="0.3"/>
+  <!-- 底台 -->
+  <rect x="48" y="88" width="24" height="4" rx="2" fill="#5a3a1a"/>
+  <!-- タイトル -->
+  <text x="60" y="108" text-anchor="middle" fill="#7a5020" font-family="'DM Mono',monospace" font-size="7" letter-spacing="2">WHISKY</text>
+</svg>
+<div class="label">① Classic Glass</div>
+</div>
+
+<!-- ② Barrel -->
+<div class="item">
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1208"/>
+      <stop offset="100%" stop-color="#120d06"/>
+    </linearGradient>
+    <linearGradient id="wood" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#5a3010"/>
+      <stop offset="50%" stop-color="#8a5020"/>
+      <stop offset="100%" stop-color="#5a3010"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" fill="url(#bg2)"/>
+  <rect x="3" y="3" width="114" height="114" rx="20" fill="none" stroke="#3a2210" stroke-width="0.5"/>
+  <!-- 樽ボディ -->
+  <ellipse cx="60" cy="38" rx="28" ry="8" fill="#6a3818" stroke="#4a2810" stroke-width="1"/>
+  <rect x="32" y="38" width="56" height="44" fill="url(#wood)"/>
+  <ellipse cx="60" cy="82" rx="28" ry="8" fill="#6a3818" stroke="#4a2810" stroke-width="1"/>
+  <!-- 樽の木目 -->
+  <line x1="48" y1="38" x2="48" y2="82" stroke="#3a2010" stroke-width="1" opacity="0.6"/>
+  <line x1="60" y1="38" x2="60" y2="82" stroke="#3a2010" stroke-width="1" opacity="0.4"/>
+  <line x1="72" y1="38" x2="72" y2="82" stroke="#3a2010" stroke-width="1" opacity="0.6"/>
+  <!-- 金属バンド -->
+  <rect x="32" y="52" width="56" height="5" fill="#c8881a" opacity="0.7"/>
+  <rect x="32" y="64" width="56" height="5" fill="#c8881a" opacity="0.7"/>
+  <!-- ゴールドリング -->
+  <ellipse cx="60" cy="54" rx="28" ry="3" fill="none" stroke="#e8a840" stroke-width="1.5" opacity="0.5"/>
+  <!-- アイコン文字 -->
+  <text x="60" y="107" text-anchor="middle" fill="#7a5020" font-family="'DM Mono',monospace" font-size="7" letter-spacing="2">BARREL</text>
+</svg>
+<div class="label">② Barrel & Oak</div>
+</div>
+
+<!-- ③ Monogram WJ -->
+<div class="item">
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1208"/>
+      <stop offset="100%" stop-color="#0e0a06"/>
+    </linearGradient>
+    <linearGradient id="gold3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e8c880"/>
+      <stop offset="100%" stop-color="#c8981a"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" fill="url(#bg3)"/>
+  <!-- 外枠二重 -->
+  <rect x="6" y="6" width="108" height="108" rx="18" fill="none" stroke="#3a2810" stroke-width="1"/>
+  <rect x="10" y="10" width="100" height="100" rx="16" fill="none" stroke="#2a1e10" stroke-width="0.5"/>
+  <!-- コーナーデコ -->
+  <circle cx="20" cy="20" r="3" fill="#5a3810" opacity="0.6"/>
+  <circle cx="100" cy="20" r="3" fill="#5a3810" opacity="0.6"/>
+  <circle cx="20" cy="100" r="3" fill="#5a3810" opacity="0.6"/>
+  <circle cx="100" cy="100" r="3" fill="#5a3810" opacity="0.6"/>
+  <!-- 上下ライン -->
+  <line x1="30" y1="32" x2="90" y2="32" stroke="#5a3810" stroke-width="0.5"/>
+  <line x1="30" y1="88" x2="90" y2="88" stroke="#5a3810" stroke-width="0.5"/>
+  <!-- モノグラム W -->
+  <text x="60" y="76" text-anchor="middle" fill="url(#gold3)" font-family="'Cormorant Garamond',serif" font-size="58" font-weight="700" font-style="italic">W</text>
+  <!-- サブタイトル -->
+  <text x="60" y="84" text-anchor="middle" fill="#5a3810" font-family="'DM Mono',monospace" font-size="6" letter-spacing="4">JOURNAL</text>
+</svg>
+<div class="label">③ Monogram W</div>
+</div>
+
+<!-- ④ Crest -->
+<div class="item">
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1408"/>
+      <stop offset="100%" stop-color="#120d06"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" fill="url(#bg4)"/>
+  <!-- 紋章シールド -->
+  <path d="M60 18 L88 30 L88 62 Q88 82 60 96 Q32 82 32 62 L32 30 Z" fill="none" stroke="#5a3810" stroke-width="1.5"/>
+  <path d="M60 22 L84 33 L84 62 Q84 79 60 92 Q36 79 36 62 L36 33 Z" fill="rgba(90,56,16,0.2)"/>
+  <!-- 十字 -->
+  <line x1="60" y1="35" x2="60" y2="80" stroke="#c8881a" stroke-width="1.5" opacity="0.6"/>
+  <line x1="42" y1="57" x2="78" y2="57" stroke="#c8881a" stroke-width="1.5" opacity="0.6"/>
+  <!-- 中央グラス -->
+  <path d="M53 42 L67 42 L64 62 L62 64 L58 64 L56 62 Z" fill="none" stroke="#e8c880" stroke-width="1.2"/>
+  <path d="M56 58 L64 58 L64 62 L62 64 L58 64 L56 62 Z" fill="#c8881a" opacity="0.6"/>
+  <!-- 星 -->
+  <text x="60" y="20" text-anchor="middle" fill="#5a3810" font-size="8">✦</text>
+  <!-- リボン -->
+  <path d="M32 88 Q60 95 88 88 L88 95 Q60 102 32 95 Z" fill="#2a1810" stroke="#4a2810" stroke-width="0.5"/>
+  <text x="60" y="94" text-anchor="middle" fill="#7a5020" font-family="'DM Mono',monospace" font-size="6" letter-spacing="2">WHISKY</text>
+</svg>
+<div class="label">④ Heraldic Crest</div>
+</div>
+
+<!-- ⑤ Vintage Label -->
+<div class="item">
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0e0c0"/>
+      <stop offset="100%" stop-color="#d4b880"/>
+    </linearGradient>
+    <linearGradient id="bg5inner" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1008"/>
+      <stop offset="100%" stop-color="#0e0a06"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" fill="url(#bg5inner)"/>
+  <!-- ラベル風背景 -->
+  <rect x="12" y="16" width="96" height="88" rx="6" fill="#f0e0c0" opacity="0.95"/>
+  <rect x="16" y="20" width="88" height="80" rx="4" fill="none" stroke="#8a5820" stroke-width="1.5"/>
+  <rect x="20" y="24" width="80" height="72" rx="3" fill="none" stroke="#c8881a" stroke-width="0.5"/>
+  <!-- 上部デコ -->
+  <line x1="28" y1="36" x2="92" y2="36" stroke="#8a5820" stroke-width="0.5"/>
+  <line x1="28" y1="38" x2="92" y2="38" stroke="#c8881a" stroke-width="0.3"/>
+  <!-- メインテキスト -->
+  <text x="60" y="58" text-anchor="middle" fill="#2a1808" font-family="'Cormorant Garamond',serif" font-size="20" font-weight="700" font-style="italic">Whisky</text>
+  <text x="60" y="70" text-anchor="middle" fill="#5a3010" font-family="'Cormorant Garamond',serif" font-size="11" font-style="italic">Journal</text>
+  <!-- 下部デコ -->
+  <line x1="28" y1="78" x2="92" y2="78" stroke="#c8881a" stroke-width="0.3"/>
+  <line x1="28" y1="80" x2="92" y2="80" stroke="#8a5820" stroke-width="0.5"/>
+  <text x="60" y="88" text-anchor="middle" fill="#8a5820" font-family="'DM Mono',monospace" font-size="7" letter-spacing="3">COLLECTION</text>
+</svg>
+<div class="label">⑤ Vintage Label</div>
+</div>
+
+<!-- ⑥ Amber Drop -->
+<div class="item">
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg6" cx="40%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#2a1808"/>
+      <stop offset="100%" stop-color="#0e0a06"/>
+    </radialGradient>
+    <radialGradient id="drop" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#f0c040"/>
+      <stop offset="60%" stop-color="#c87020"/>
+      <stop offset="100%" stop-color="#8a4010"/>
+    </radialGradient>
+  </defs>
+  <rect width="120" height="120" fill="url(#bg6)"/>
+  <!-- 星 -->
+  <text x="22" y="30" fill="#3a2010" font-size="10">✦</text>
+  <text x="90" y="30" fill="#3a2010" font-size="10">✦</text>
+  <text x="22" y="100" fill="#3a2010" font-size="10">✦</text>
+  <text x="90" y="100" fill="#3a2010" font-size="10">✦</text>
+  <!-- ドロップ（琥珀の一滴） -->
+  <path d="M60 20 Q78 44 78 60 Q78 78 60 84 Q42 78 42 60 Q42 44 60 20 Z" fill="url(#drop)" opacity="0.9"/>
+  <!-- ハイライト -->
+  <ellipse cx="53" cy="44" rx="5" ry="8" fill="white" opacity="0.15" transform="rotate(-15,53,44)"/>
+  <!-- グラス線 -->
+  <path d="M60 20 Q78 44 78 60 Q78 78 60 84 Q42 78 42 60 Q42 44 60 20 Z" fill="none" stroke="#e8a840" stroke-width="1" opacity="0.3"/>
+  <!-- テキスト -->
+  <text x="60" y="106" text-anchor="middle" fill="#7a5020" font-family="'DM Mono',monospace" font-size="7" letter-spacing="2">WHISKY</text>
+  <text x="60" y="114" text-anchor="middle" fill="#4a2e10" font-family="'DM Mono',monospace" font-size="6" letter-spacing="3">JOURNAL</text>
+</svg>
+<div class="label">⑥ Amber Drop</div>
+</div>
+
+<!-- ⑦ Minimalist -->
+<div class="item">
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg7" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16100a"/>
+      <stop offset="100%" stop-color="#0a0806"/>
+    </linearGradient>
+    <linearGradient id="line7" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="transparent"/>
+      <stop offset="50%" stop-color="#8a5820"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" fill="url(#bg7)"/>
+  <!-- 繊細な外枠 -->
+  <rect x="8" y="8" width="104" height="104" rx="18" fill="none" stroke="#2a1e10" stroke-width="0.5"/>
+  <!-- グラスアイコン（シンプル） -->
+  <path d="M44 28 L76 28 L68 68 L64 72 L56 72 L52 68 Z" fill="none" stroke="#8a5820" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M56 72 L56 84 M64 72 L64 84" stroke="#8a5820" stroke-width="1.5"/>
+  <line x1="50" y1="84" x2="70" y2="84" stroke="#8a5820" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- 液体面 -->
+  <path d="M52 58 Q60 63 68 58 L68 68 L52 68 Z" fill="#c87020" opacity="0.5"/>
+  <!-- 上下ライン -->
+  <line x1="20" y1="22" x2="100" y2="22" stroke="url(#line7)" stroke-width="0.5"/>
+  <line x1="20" y1="98" x2="100" y2="98" stroke="url(#line7)" stroke-width="0.5"/>
+  <!-- テキスト -->
+  <text x="60" y="110" text-anchor="middle" fill="#5a3810" font-family="'Cormorant Garamond',serif" font-size="9" letter-spacing="3" font-style="italic">Journal</text>
+</svg>
+<div class="label">⑦ Minimalist</div>
+</div>
+
+<!-- ⑧ Royal Dark -->
+<div class="item">
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg8" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1408"/>
+      <stop offset="100%" stop-color="#0e0a06"/>
+    </linearGradient>
+    <linearGradient id="crown" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c87020"/>
+      <stop offset="50%" stop-color="#e8c060"/>
+      <stop offset="100%" stop-color="#c87020"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" fill="url(#bg8)"/>
+  <!-- 二重丸枠 -->
+  <circle cx="60" cy="60" r="50" fill="none" stroke="#3a2410" stroke-width="1"/>
+  <circle cx="60" cy="60" r="46" fill="none" stroke="#2a1a0a" stroke-width="0.5"/>
+  <!-- コーナー菱形 -->
+  <polygon points="60,12 63,15 60,18 57,15" fill="#5a3810"/>
+  <polygon points="60,102 63,105 60,108 57,105" fill="#5a3810"/>
+  <polygon points="12,60 15,57 18,60 15,63" fill="#5a3810"/>
+  <polygon points="102,60 105,57 108,60 105,63" fill="#5a3810"/>
+  <!-- クラウン -->
+  <path d="M40 52 L44 40 L52 50 L60 36 L68 50 L76 40 L80 52 Z" fill="url(#crown)" opacity="0.9"/>
+  <rect x="40" y="52" width="40" height="10" rx="1" fill="url(#crown)" opacity="0.8"/>
+  <!-- ジュエル -->
+  <circle cx="60" cy="45" r="3" fill="#e8c880" opacity="0.9"/>
+  <circle cx="48" cy="49" r="2" fill="#c87020" opacity="0.7"/>
+  <circle cx="72" cy="49" r="2" fill="#c87020" opacity="0.7"/>
+  <!-- テキスト -->
+  <text x="60" y="78" text-anchor="middle" fill="#c8881a" font-family="'Cormorant Garamond',serif" font-size="13" font-style="italic" font-weight="700">Whisky</text>
+  <text x="60" y="90" text-anchor="middle" fill="#5a3810" font-family="'DM Mono',monospace" font-size="7" letter-spacing="3">JOURNAL</text>
+</svg>
+<div class="label">⑧ Royal Crown</div>
+</div>
+
+</div>
+
+<p style="text-align:center;color:#3a2810;font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.15em;margin-top:24px;">TAP AN ICON TO SEE LARGER</p>
+
+<script>
+document.querySelectorAll('svg').forEach(svg => {
+  svg.style.cursor = 'pointer';
+  svg.addEventListener('click', () => {
+    const d = document.createElement('div');
+    d.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:999;';
+    const clone = svg.cloneNode(true);
+    clone.setAttribute('width','280');
+    clone.setAttribute('height','280');
+    clone.style.borderRadius = '22%';
+    d.appendChild(clone);
+    d.onclick = () => d.remove();
+    document.body.appendChild(d);
+  });
+});
+</script>
+</body>
+</html>

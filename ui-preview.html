@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ウイスキーUI候補</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@400;500&display=swap');
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#111; font-family:'Noto Sans JP',sans-serif; padding:20px; }
+h1 { color:#888; text-align:center; margin-bottom:24px; font-size:13px; letter-spacing:.2em; text-transform:uppercase; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:20px; }
+
+/* ── ① Aged Leather ── */
+.skin-1 {
+  background: linear-gradient(145deg, #2a1a0e 0%, #1a0f08 100%);
+  border: 1px solid #6b4226;
+  border-radius: 16px;
+  overflow: hidden;
+  font-family: 'Playfair Display', serif;
+}
+.skin-1 .hd { background: linear-gradient(90deg,#3d2010,#5c3218); padding:16px; border-bottom:1px solid #6b4226; display:flex; align-items:center; gap:12px; }
+.skin-1 .hd .icon { font-size:28px; }
+.skin-1 .hd .ttl { color:#d4a055; font-size:18px; font-weight:700; letter-spacing:.05em; }
+.skin-1 .hd .sub { color:#8a6040; font-size:10px; letter-spacing:.15em; text-transform:uppercase; margin-top:2px; }
+.skin-1 .body { padding:16px; }
+.skin-1 .card { background: linear-gradient(135deg,#2e1a0c,#241408); border:1px solid #5c3218; border-radius:10px; padding:14px; margin-bottom:10px; }
+.skin-1 .card-name { color:#d4a055; font-size:16px; font-weight:700; }
+.skin-1 .card-dist { color:#8a6040; font-size:11px; margin-top:2px; }
+.skin-1 .card-tags { display:flex; gap:6px; margin-top:10px; }
+.skin-1 .tag { background:#3d2010; border:1px solid #6b4226; color:#c4904a; padding:3px 8px; border-radius:4px; font-size:10px; }
+.skin-1 .stars { color:#d4a055; font-size:16px; margin-top:8px; }
+.skin-1 .label { color:#5c3218; font-size:9px; letter-spacing:.15em; text-transform:uppercase; margin-bottom:4px; }
+.skin-1 .btn { background:linear-gradient(90deg,#8b5e2a,#c4904a); color:#fff; border:none; padding:10px 20px; border-radius:8px; font-size:13px; font-weight:700; width:100%; margin-top:8px; cursor:pointer; letter-spacing:.05em; }
+.skin-1 .badge { display:inline-block; width:8px; height:8px; background:#d4a055; border-radius:50%; margin-right:6px; }
+.skin-1 .num { color:#5c3218; font-size:11px; font-family:'DM Mono',monospace; }
+
+/* ── ② Distillery Stone ── */
+.skin-2 {
+  background: #1c1c1e;
+  border: 1px solid #3a3a3c;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.skin-2 .hd { background:#141416; padding:16px; border-bottom:1px solid #2c2c2e; display:flex; align-items:center; gap:12px; }
+.skin-2 .hd .icon { font-size:26px; }
+.skin-2 .hd .ttl { color:#e5e5e7; font-size:17px; font-weight:900; letter-spacing:-.02em; }
+.skin-2 .hd .sub { color:#636366; font-size:10px; letter-spacing:.1em; text-transform:uppercase; margin-top:2px; }
+.skin-2 .hd .acc { margin-left:auto; background:#b87333; color:#fff; padding:4px 10px; border-radius:6px; font-size:10px; font-weight:700; letter-spacing:.05em; }
+.skin-2 .body { padding:16px; }
+.skin-2 .card { background:#252527; border:1px solid #3a3a3c; border-left:3px solid #b87333; border-radius:8px; padding:14px; margin-bottom:10px; }
+.skin-2 .card-name { color:#e5e5e7; font-size:15px; font-weight:700; }
+.skin-2 .card-dist { color:#636366; font-size:11px; margin-top:3px; font-family:'DM Mono',monospace; }
+.skin-2 .card-row { display:flex; gap:8px; margin-top:10px; }
+.skin-2 .stat { background:#1c1c1e; border:1px solid #3a3a3c; border-radius:6px; padding:6px 10px; flex:1; text-align:center; }
+.skin-2 .stat-v { color:#b87333; font-size:16px; font-weight:900; font-family:'DM Mono',monospace; }
+.skin-2 .stat-l { color:#636366; font-size:9px; letter-spacing:.1em; text-transform:uppercase; margin-top:1px; }
+.skin-2 .stars { color:#b87333; font-size:15px; margin-top:8px; }
+.skin-2 .btn { background:#b87333; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-size:13px; font-weight:700; width:100%; margin-top:8px; cursor:pointer; }
+.skin-2 .chip { background:#1c1c1e; border:1px solid #3a3a3c; color:#8e8e93; padding:3px 8px; border-radius:4px; font-size:10px; display:inline-block; margin-right:4px; margin-top:6px; }
+
+/* ── ③ Noir Speakeasy ── */
+.skin-3 {
+  background: #000;
+  border: 1px solid #2a2a2a;
+  border-radius: 16px;
+  overflow: hidden;
+  font-family: 'Playfair Display', serif;
+}
+.skin-3 .hd { background:#050505; padding:18px; border-bottom:1px solid #1a1a1a; text-align:center; }
+.skin-3 .hd .deco { color:#b8960c; font-size:11px; letter-spacing:.3em; text-transform:uppercase; margin-bottom:4px; }
+.skin-3 .hd .ttl { color:#f0d060; font-size:20px; font-weight:700; letter-spacing:.08em; text-shadow:0 0 20px rgba(240,208,96,.3); }
+.skin-3 .hd .line { width:60px; height:1px; background:linear-gradient(90deg,transparent,#b8960c,transparent); margin:8px auto 0; }
+.skin-3 .body { padding:16px; }
+.skin-3 .card { background:#0a0a0a; border:1px solid #1a1a1a; border-radius:8px; padding:14px; margin-bottom:10px; position:relative; }
+.skin-3 .card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,#b8960c,transparent); }
+.skin-3 .card-name { color:#f0d060; font-size:16px; font-weight:700; letter-spacing:.03em; }
+.skin-3 .card-dist { color:#666; font-size:11px; margin-top:3px; letter-spacing:.05em; font-family:'DM Mono',monospace; }
+.skin-3 .divider { height:1px; background:linear-gradient(90deg,transparent,#2a2a2a,transparent); margin:10px 0; }
+.skin-3 .note { color:#555; font-size:11px; line-height:1.6; font-style:italic; }
+.skin-3 .stars { color:#b8960c; font-size:16px; margin-top:8px; }
+.skin-3 .tags { display:flex; gap:6px; margin-top:8px; }
+.skin-3 .tag { border:1px solid #2a2a2a; color:#666; padding:3px 8px; border-radius:2px; font-size:9px; letter-spacing:.1em; text-transform:uppercase; font-family:'DM Mono',monospace; }
+.skin-3 .btn { background:transparent; color:#f0d060; border:1px solid #b8960c; padding:10px 20px; border-radius:4px; font-size:12px; font-weight:700; width:100%; margin-top:8px; cursor:pointer; letter-spacing:.15em; text-transform:uppercase; font-family:'Playfair Display',serif; }
+
+/* ── ④ Barrel & Oak ── */
+.skin-4 {
+  background: linear-gradient(160deg,#1e1208 0%,#150d06 100%);
+  border: 1px solid #4a2e10;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.skin-4 .hd { background:linear-gradient(90deg,#2a1a08,#1e1208); padding:16px; border-bottom:1px solid #3a2210; display:flex; align-items:center; gap:10px; }
+.skin-4 .hd .icon { width:40px; height:40px; background:linear-gradient(135deg,#c47c30,#8b5a1c); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; }
+.skin-4 .hd .ttl { color:#e8a840; font-size:18px; font-weight:900; }
+.skin-4 .hd .sub { color:#6b4020; font-size:10px; letter-spacing:.1em; }
+.skin-4 .barrels { display:flex; gap:3px; padding:10px 16px; background:#120c04; border-bottom:1px solid #2a1a08; }
+.skin-4 .barrel { flex:1; height:4px; background:#2a1a08; border-radius:2px; }
+.skin-4 .barrel.a { background:linear-gradient(90deg,#c47c30,#e8a840); }
+.skin-4 .barrel.b { background:linear-gradient(90deg,#8b5a1c,#c47c30); }
+.skin-4 .body { padding:16px; }
+.skin-4 .card { background:rgba(196,124,48,.08); border:1px solid #3a2210; border-radius:10px; padding:14px; margin-bottom:10px; }
+.skin-4 .card-header { display:flex; justify-content:space-between; align-items:flex-start; }
+.skin-4 .card-name { color:#e8a840; font-size:15px; font-weight:700; }
+.skin-4 .abv { color:#c47c30; font-size:13px; font-weight:700; font-family:'DM Mono',monospace; }
+.skin-4 .card-dist { color:#6b4020; font-size:11px; margin-top:3px; }
+.skin-4 .progress { background:#2a1a08; border-radius:4px; height:6px; margin-top:10px; overflow:hidden; }
+.skin-4 .progress-bar { height:100%; background:linear-gradient(90deg,#8b5a1c,#e8a840); border-radius:4px; }
+.skin-4 .progress-label { display:flex; justify-content:space-between; margin-top:4px; }
+.skin-4 .progress-label span { color:#4a2e10; font-size:9px; }
+.skin-4 .stars { color:#e8a840; margin-top:8px; }
+.skin-4 .btn { background:linear-gradient(90deg,#8b5a1c,#c47c30); color:#fff; border:none; padding:10px 20px; border-radius:8px; font-size:13px; font-weight:700; width:100%; margin-top:8px; cursor:pointer; }
+
+/* ── ⑤ Highland Mist ── */
+.skin-5 {
+  background: linear-gradient(160deg,#0d1520 0%,#0a1018 100%);
+  border: 1px solid #1e3050;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.skin-5 .hd { background:linear-gradient(90deg,#0f1e35,#0a1620); padding:16px; border-bottom:1px solid #1e3050; display:flex; align-items:center; gap:12px; }
+.skin-5 .hd .icon { font-size:26px; filter:drop-shadow(0 0 8px rgba(100,180,255,.4)); }
+.skin-5 .hd .ttl { color:#90c8f0; font-size:17px; font-weight:700; letter-spacing:.02em; }
+.skin-5 .hd .sub { color:#2a4a6a; font-size:10px; letter-spacing:.1em; text-transform:uppercase; margin-top:2px; }
+.skin-5 .hd .badge { margin-left:auto; background:rgba(100,180,255,.1); border:1px solid #1e3050; color:#60a8d8; padding:4px 10px; border-radius:20px; font-size:10px; }
+.skin-5 .body { padding:16px; }
+.skin-5 .card { background:rgba(30,48,80,.3); border:1px solid #1e3050; border-radius:12px; padding:14px; margin-bottom:10px; backdrop-filter:blur(10px); }
+.skin-5 .card-name { color:#c8e8ff; font-size:15px; font-weight:700; }
+.skin-5 .card-dist { color:#2a4a6a; font-size:11px; margin-top:3px; font-family:'DM Mono',monospace; }
+.skin-5 .card-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:10px; }
+.skin-5 .meta { background:rgba(14,26,45,.6); border:1px solid #1a2e48; border-radius:6px; padding:6px; text-align:center; }
+.skin-5 .meta-v { color:#60a8d8; font-size:14px; font-weight:700; font-family:'DM Mono',monospace; }
+.skin-5 .meta-l { color:#1e3050; font-size:8px; letter-spacing:.1em; text-transform:uppercase; margin-top:1px; }
+.skin-5 .stars { color:#60a8d8; font-size:15px; margin-top:10px; text-shadow:0 0 10px rgba(96,168,216,.5); }
+.skin-5 .btn { background:linear-gradient(90deg,#1e3050,#2a4a6a); color:#90c8f0; border:1px solid #2a4a6a; padding:10px 20px; border-radius:8px; font-size:13px; font-weight:700; width:100%; margin-top:8px; cursor:pointer; }
+.skin-5 .mist { position:relative; overflow:hidden; }
+.skin-5 .mist::after { content:''; position:absolute; top:0; left:-100%; width:300%; height:100%; background:linear-gradient(90deg,transparent,rgba(100,180,255,.03),transparent); animation:mist 4s linear infinite; }
+@keyframes mist { to { left:100%; } }
+
+.label-num { font-size:11px; color:#555; text-align:center; margin-bottom:8px; font-family:'DM Mono',monospace; letter-spacing:.1em; }
+</style>
+</head>
+<body>
+<h1>🥃 ウイスキーコレクション UI候補</h1>
+<div class="grid">
+
+<!-- ① Aged Leather -->
+<div>
+<div class="label-num">① AGED LEATHER</div>
+<div class="skin-1">
+  <div class="hd">
+    <div class="icon">🥃</div>
+    <div>
+      <div class="ttl">Whisky Collection</div>
+      <div class="sub">Personal Collection</div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="label">FEATURED</div>
+    <div class="card">
+      <div class="card-name">Glenfarclas 25</div>
+      <div class="card-dist">Speyside, Scotland</div>
+      <div class="card-tags">
+        <span class="tag">シングルモルト</span>
+        <span class="tag">25年</span>
+        <span class="tag">46%</span>
+      </div>
+      <div class="stars">★★★★★</div>
+      <div class="num" style="margin-top:6px;">¥28,000 · 2024.03.15</div>
+    </div>
+    <div class="card">
+      <div class="card-name">Yamazaki 12</div>
+      <div class="card-dist">Osaka, Japan</div>
+      <div class="card-tags">
+        <span class="tag">シングルモルト</span>
+        <span class="tag">12年</span>
+      </div>
+      <div class="stars">★★★★☆</div>
+    </div>
+    <button class="btn">＋ 新しいボトルを追加</button>
+  </div>
+</div>
+</div>
+
+<!-- ② Distillery Stone -->
+<div>
+<div class="label-num">② DISTILLERY STONE</div>
+<div class="skin-2">
+  <div class="hd">
+    <div class="icon">🏴󠁧󠁢󠁳󠁣󠁴󠁿</div>
+    <div>
+      <div class="ttl">ウイスキーコレクション</div>
+      <div class="sub">Whisky Collection</div>
+    </div>
+    <div class="acc">12本</div>
+  </div>
+  <div class="body">
+    <div class="card">
+      <div class="card-name">Glenfarclas 25</div>
+      <div class="card-dist">SPEYSIDE · SCOTLAND</div>
+      <div class="card-row">
+        <div class="stat"><div class="stat-v">25</div><div class="stat-l">YEARS</div></div>
+        <div class="stat"><div class="stat-v">46%</div><div class="stat-l">ABV</div></div>
+        <div class="stat"><div class="stat-v">¥28k</div><div class="stat-l">PRICE</div></div>
+      </div>
+      <span class="chip">シングルモルト</span>
+      <span class="chip">在庫あり</span>
+      <div class="stars">★★★★★</div>
+    </div>
+    <div class="card">
+      <div class="card-name">Yamazaki 12</div>
+      <div class="card-dist">OSAKA · JAPAN</div>
+      <div class="card-row">
+        <div class="stat"><div class="stat-v">12</div><div class="stat-l">YEARS</div></div>
+        <div class="stat"><div class="stat-v">43%</div><div class="stat-l">ABV</div></div>
+      </div>
+      <div class="stars">★★★★☆</div>
+    </div>
+    <button class="btn">＋ 追加</button>
+  </div>
+</div>
+</div>
+
+<!-- ③ Noir Speakeasy -->
+<div>
+<div class="label-num">③ NOIR SPEAKEASY</div>
+<div class="skin-3">
+  <div class="hd">
+    <div class="deco">— Private Collection —</div>
+    <div class="ttl">Whisky Journal</div>
+    <div class="line"></div>
+  </div>
+  <div class="body">
+    <div class="card">
+      <div class="card-name">Glenfarclas 25</div>
+      <div class="card-dist">SPEYSIDE · 46% ABV · 25 YEARS</div>
+      <div class="divider"></div>
+      <div class="note">"蜂蜜とシェリーの甘み、スパイスの余韻が長く続く。深い琥珀色。"</div>
+      <div class="tags">
+        <span class="tag">Single Malt</span>
+        <span class="tag">Scotland</span>
+        <span class="tag">In Stock</span>
+      </div>
+      <div class="stars">★★★★★</div>
+    </div>
+    <div class="card">
+      <div class="card-name">Yamazaki 12</div>
+      <div class="card-dist">OSAKA · 43% ABV · 12 YEARS</div>
+      <div class="divider"></div>
+      <div class="note">"フルーティで上品、ミズナラの香り。"</div>
+      <div class="stars">★★★★☆</div>
+    </div>
+    <button class="btn">— Add New Entry —</button>
+  </div>
+</div>
+</div>
+
+<!-- ④ Barrel & Oak -->
+<div>
+<div class="label-num">④ BARREL &amp; OAK</div>
+<div class="skin-4">
+  <div class="hd">
+    <div class="icon">🛢️</div>
+    <div>
+      <div class="ttl">Barrel Notes</div>
+      <div class="sub">ウイスキーコレクション</div>
+    </div>
+  </div>
+  <div class="barrels">
+    <div class="barrel a"></div>
+    <div class="barrel b"></div>
+    <div class="barrel a"></div>
+    <div class="barrel"></div>
+    <div class="barrel b"></div>
+    <div class="barrel a"></div>
+    <div class="barrel"></div>
+    <div class="barrel b"></div>
+  </div>
+  <div class="body">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-name">Glenfarclas 25</div>
+          <div class="card-dist">Speyside, Scotland</div>
+        </div>
+        <div class="abv">46%</div>
+      </div>
+      <div class="progress" style="margin-top:10px;">
+        <div class="progress-bar" style="width:90%"></div>
+      </div>
+      <div class="progress-label"><span>評価</span><span style="color:#e8a840;font-size:10px;">★★★★★</span></div>
+      <div style="color:#6b4020;font-size:11px;margin-top:6px;">25年熟成 · ¥28,000 · 在庫あり</div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-name">Yamazaki 12</div>
+          <div class="card-dist">Osaka, Japan</div>
+        </div>
+        <div class="abv">43%</div>
+      </div>
+      <div class="progress" style="margin-top:10px;">
+        <div class="progress-bar" style="width:80%"></div>
+      </div>
+      <div class="progress-label"><span>評価</span><span style="color:#e8a840;font-size:10px;">★★★★☆</span></div>
+    </div>
+    <button class="btn">＋ ボトルを追加</button>
+  </div>
+</div>
+</div>
+
+<!-- ⑤ Highland Mist -->
+<div>
+<div class="label-num">⑤ HIGHLAND MIST</div>
+<div class="skin-5 mist">
+  <div class="hd">
+    <div class="icon">🌊</div>
+    <div>
+      <div class="ttl">Highland Collection</div>
+      <div class="sub">Whisky Journal</div>
+    </div>
+    <div class="badge">12 bottles</div>
+  </div>
+  <div class="body">
+    <div class="card">
+      <div class="card-name">Glenfarclas 25</div>
+      <div class="card-dist">SPEYSIDE · SCOTLAND</div>
+      <div class="card-grid">
+        <div class="meta"><div class="meta-v">25yr</div><div class="meta-l">Age</div></div>
+        <div class="meta"><div class="meta-v">46%</div><div class="meta-l">ABV</div></div>
+        <div class="meta"><div class="meta-v">¥28k</div><div class="meta-l">Price</div></div>
+      </div>
+      <div class="stars">★★★★★</div>
+    </div>
+    <div class="card">
+      <div class="card-name">Yamazaki 12</div>
+      <div class="card-dist">OSAKA · JAPAN</div>
+      <div class="card-grid">
+        <div class="meta"><div class="meta-v">12yr</div><div class="meta-l">Age</div></div>
+        <div class="meta"><div class="meta-v">43%</div><div class="meta-l">ABV</div></div>
+      </div>
+      <div class="stars">★★★★☆</div>
+    </div>
+    <button class="btn">＋ New Entry</button>
+  </div>
+</div>
+</div>
+
+</div>
+</body>
+</html>

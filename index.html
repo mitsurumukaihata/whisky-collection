@@ -4419,7 +4419,15 @@ async function renderInstaSlides(){
   document.getElementById('insta-actions-ready').style.display = 'flex';
   const prep = document.getElementById('btn-prepare');
   if (prep) prep.style.display = 'none';   // 事前生成ボタンは不要（描画が速いので即完成）
-  setInstaStatus(instaSlides.length + '枚できました', true);
+  // PNG符号化を先回りで済ませる。
+  // iOSは「タップ後に時間のかかる処理を挟むと共有を拒否」するため、
+  // 保存ボタンを押した時点でBlobが揃っている状態を作っておく。
+  setInstaStatus(instaSlides.length + '枚 描画完了。画像を準備中…');
+  ensureBlobs().then(function(){
+    setInstaStatus(instaSlides.length + '枚できました。保存できます', true);
+  }).catch(function(){
+    setInstaStatus('画像の準備に失敗しました');
+  });
 }
 function isMobileDevice(){
   return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
@@ -4450,20 +4458,19 @@ function dlBlob(blob, name){
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
 }
-async function saveOne(i){
-  try {
-    const blob = await canvasToBlob(instaSlides[i].canvas);
-    const file = new File([blob], slideFileName(i), { type:'image/png' });
-    if (isMobileDevice() && navigator.canShare && navigator.canShare({ files:[file] })){
-      await navigator.share({ files:[file] });
-      return;
-    }
-    dlBlob(blob, slideFileName(i));
-    showToast(slideFileName(i) + ' を保存', '✓');
-  } catch(err){
-    if (err && err.name === 'AbortError') return;
-    showToast('失敗: ' + err.message, '⚠');
+function saveOne(i){
+  const blob = instaBlobs[i];
+  if (!blob){ showToast('画像を準備中…数秒後にもう一度押してね', '⚠'); ensureBlobs(); return; }
+  const file = new File([blob], slideFileName(i), { type:'image/png' });
+  if (isMobileDevice() && navigator.canShare && navigator.canShare({ files:[file] })){
+    navigator.share({ files:[file] }).catch(function(err){
+      if (err && err.name === 'AbortError') return;
+      showToast('失敗: ' + err.message, '⚠');
+    });
+    return;
   }
+  dlBlob(blob, slideFileName(i));
+  showToast(slideFileName(i) + ' を保存', '✓');
 }
 async function downloadAllSlides(){
   if (!instaSlides.length) return;
@@ -4474,21 +4481,30 @@ async function downloadAllSlides(){
   }
   showToast('全' + instaBlobs.length + '枚を保存', '✓');
 }
-async function shareAllSlides(){
+// iOS対策: タップから navigator.share() までに await を挟まない（同期的に呼ぶ）
+function shareAllSlides(){
   if (!instaSlides.length) return;
-  try {
-    await ensureBlobs();          // Canvas→PNGは高速なのでタップ内で完結する
-    const files = instaFiles();
-    if (!navigator.canShare || !navigator.canShare({ files })){
-      showToast('この端末は共有非対応。順に保存します', '⚠');
-      return downloadAllSlides();
-    }
-    await navigator.share({ files, title:(instaEntry && instaEntry.name) || '' });
-    setInstaStatus('写真に保存できたら Instagram で選んでカルーセル投稿してね', true);
-  } catch(err){
-    if (err && err.name === 'AbortError') return;
-    showToast('共有に失敗: ' + err.message, '⚠');
+  if (instaBlobs.length !== instaSlides.length){
+    showToast('画像を準備中…数秒後にもう一度押してね', '⚠');
+    ensureBlobs().then(function(){
+      setInstaStatus(instaSlides.length + '枚できました。保存できます', true);
+    });
+    return;
   }
+  const files = instaFiles();
+  if (!navigator.canShare || !navigator.canShare({ files })){
+    showToast('この端末は共有非対応。順に保存します', '⚠');
+    downloadAllSlides();
+    return;
+  }
+  navigator.share({ files, title:(instaEntry && instaEntry.name) || '' })
+    .then(function(){
+      setInstaStatus('写真に保存できたら Instagram で選んでカルーセル投稿してね', true);
+    })
+    .catch(function(err){
+      if (err && err.name === 'AbortError') return;
+      showToast('共有に失敗: ' + err.message, '⚠');
+    });
 }
 function prepareSlides(){ renderInstaSlides(); }   // 旧ボタン互換
 

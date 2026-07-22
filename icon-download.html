@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whisky Journal — Icon Download</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#2a2a2a;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  gap:32px;
+  font-family:monospace;
+  padding:40px 20px;
+}
+h1 { color:#888; font-size:11px; letter-spacing:.3em; text-transform:uppercase; }
+/* iPhoneの角丸マスクをシミュレート */
+#preview-wrap {
+  width:200px; height:200px;
+  border-radius:44px;
+  overflow:hidden;
+  box-shadow:0 12px 48px rgba(0,0,0,.6);
+}
+#preview { width:200px; height:200px; display:block; }
+#canvas { display:none; }
+.btn {
+  background:#5a3810;
+  color:#e8c880;
+  border:1px solid #8a5820;
+  padding:14px 40px;
+  font-family:monospace;
+  font-size:11px;
+  letter-spacing:.25em;
+  text-transform:uppercase;
+  cursor:pointer;
+  border-radius:4px;
+}
+.btn:hover { background:#7a5020; }
+.note { color:#666; font-size:10px; letter-spacing:.1em; text-align:center; line-height:2; }
+</style>
+</head>
+<body>
+
+<h1>Whisky Journal — App Icon</h1>
+
+<!-- iPhoneの角丸をシミュレートしたプレビュー -->
+<div id="preview-wrap">
+<svg id="preview" width="200" height="200" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="paper" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5ead0"/>
+      <stop offset="50%" stop-color="#edd9a3"/>
+      <stop offset="100%" stop-color="#d9c07a"/>
+    </linearGradient>
+    <linearGradient id="fade" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#7a4c14" stop-opacity="0"/>
+      <stop offset="25%"  stop-color="#7a4c14"/>
+      <stop offset="75%"  stop-color="#7a4c14"/>
+      <stop offset="100%" stop-color="#7a4c14" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fade2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#c8881a" stop-opacity="0"/>
+      <stop offset="20%"  stop-color="#c8881a"/>
+      <stop offset="80%"  stop-color="#c8881a"/>
+      <stop offset="100%" stop-color="#c8881a" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 全面クリームペーパー背景 -->
+  <rect width="1024" height="1024" fill="url(#paper)"/>
+
+  <!-- 上部テキスト "SINGLE MALT" -->
+  <text x="512" y="270"
+    text-anchor="middle"
+    fill="#8a5c20"
+    font-family="'Courier New',monospace"
+    font-size="58"
+    letter-spacing="18"
+  >SINGLE MALT</text>
+
+  <!-- メイン "Whisky" -->
+  <text x="512" y="580"
+    text-anchor="middle"
+    fill="#1a0e04"
+    font-family="Georgia,'Times New Roman',serif"
+    font-size="256"
+    font-weight="bold"
+    font-style="italic"
+  >Whisky</text>
+
+  <!-- サブ "Journal" -->
+  <text x="512" y="694"
+    text-anchor="middle"
+    fill="#4a2c0c"
+    font-family="Georgia,'Times New Roman',serif"
+    font-size="118"
+    font-style="italic"
+  >Journal</text>
+
+  <!-- 下部テキスト "COLLECTION" -->
+  <text x="512" y="860"
+    text-anchor="middle"
+    fill="#8a5c20"
+    font-family="'Courier New',monospace"
+    font-size="72"
+    letter-spacing="22"
+  >COLLECTION</text>
+
+</svg>
+</div>
+
+<canvas id="canvas" width="1024" height="1024"></canvas>
+
+<button class="btn" onclick="downloadSVG()">⬇ PNG をダウンロード (1024×1024)</button>
+
+<div class="note">
+  iPhoneに転送後：ショートカットアプリ → ＋ → URLを開く<br>
+  → ・・・ → ホーム画面に追加 → アイコンをタップ → 写真を選択
+</div>
+
+<script>
+function downloadSVG() {
+  // SVGをそのままCanvasに描画してPNG出力
+  const svg = document.getElementById('preview');
+  const svgData = new XMLSerializer().serializeToString(svg);
+  const svgBlob = new Blob([svgData], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(svgBlob);
+
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.getElementById('canvas');
+    canvas.width = 1024;
+    canvas.height = 1024;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, 1024, 1024);
+    URL.revokeObjectURL(url);
+
+    const link = document.createElement('a');
+    link.download = 'whisky-journal-icon.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+  img.src = url;
+}
+</script>
+
+</body>
+</html>

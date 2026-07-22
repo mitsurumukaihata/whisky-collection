@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "whisky-preview",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["-e", "require('http').createServer((req,res)=>{const fs=require('fs'),path=require('path');let f=path.join('C:/Users/Mitsuru Mukaihata/Desktop/whisky-collection',req.url==='/'?'/ui-preview.html':req.url);fs.readFile(f,(e,d)=>{if(e){res.writeHead(404);res.end();}else{res.writeHead(200,{'Content-Type':f.endsWith('.html')?'text/html':'text/plain'});res.end(d);}});}).listen(3333)"],
+      "port": 3333
+    }
+  ]
+}
