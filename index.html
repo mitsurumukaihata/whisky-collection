@@ -2062,7 +2062,206 @@ body {
   0%, 100% { opacity: 0.3; }
   50% { opacity: 1; }
 }
+/* ============================================
+   インスタ用スライド書き出し
+   ============================================ */
+/* 実寸1080x1350のステージ（画面外・外側だけabsolute、内側は通常フロー） */
+#insta-stage {
+  position: absolute;
+  left: -99999px;
+  top: 0;
+  width: 1080px;
+  z-index: -1;
+}
+.insta-slide {
+  width: 1080px;
+  height: 1350px;
+  position: relative;
+  overflow: hidden;
+  background: #1a1612;
+  color: #e8ddc7;
+  font-family: 'Source Sans 3','Noto Sans JP',sans-serif;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.is-pad { padding: 90px 80px; }
+.is-kicker {
+  font-family: 'Geist Mono',monospace;
+  font-size: 26px;
+  letter-spacing: 0.34em;
+  color: #c9a26a;
+  text-transform: uppercase;
+}
+.is-rule { width: 90px; height: 2px; background: #c9a26a; margin: 26px 0 34px; }
+.is-title {
+  font-family: 'Crimson Pro','Noto Serif JP',serif;
+  font-weight: 600;
+  font-size: 92px;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  color: #fff;
+}
+.is-sub {
+  font-family: 'Geist Mono',monospace;
+  font-size: 26px;
+  letter-spacing: 0.14em;
+  color: #9a8a72;
+  text-transform: uppercase;
+  margin-top: 20px;
+}
+.is-photo { position: absolute; inset: 0; }
+.is-photo img { width: 100%; height: 100%; object-fit: cover; }
+.is-photo-contain { background: #0e0c08; }
+.is-photo-contain img { object-fit: contain; }
+.is-scrim {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,8,6,0.72) 0%, rgba(10,8,6,0.18) 38%, rgba(10,8,6,0.86) 100%);
+}
+.is-foot {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.is-handle {
+  font-family: 'Geist Mono',monospace;
+  font-size: 26px;
+  letter-spacing: 0.16em;
+  color: #c9a26a;
+}
+.is-page {
+  font-family: 'Geist Mono',monospace;
+  font-size: 24px;
+  color: #6a5c48;
+  letter-spacing: 0.1em;
+}
+.is-score-big {
+  font-family: 'Crimson Pro',serif;
+  font-size: 200px;
+  font-weight: 700;
+  line-height: 1;
+  color: #c9a26a;
+}
+.is-stars { font-size: 62px; color: #c9a26a; letter-spacing: 0.14em; }
+.is-stars .off { color: #4a3a2c; }
+/* スペック行 */
+.is-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 30px 0;
+  border-bottom: 1px solid #3a2e24;
+}
+.is-row-k {
+  font-family: 'Geist Mono',monospace;
+  font-size: 25px;
+  letter-spacing: 0.16em;
+  color: #9a8a72;
+  text-transform: uppercase;
+}
+.is-row-v {
+  font-family: 'Crimson Pro','Noto Serif JP',serif;
+  font-size: 46px;
+  font-weight: 600;
+  color: #e8ddc7;
+  text-align: right;
+  max-width: 620px;
+}
+/* フレーバーバー */
+.is-bar-row { margin-bottom: 42px; }
+.is-bar-top {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 16px;
+}
+.is-bar-name {
+  font-family: 'Crimson Pro','Noto Serif JP',serif;
+  font-size: 42px; font-weight: 600; color: #e8ddc7;
+}
+.is-bar-num {
+  font-family: 'Geist Mono',monospace; font-size: 26px; color: #9a8a72;
+}
+.is-bar-track { height: 16px; background: #2a241e; border-radius: 8px; overflow: hidden; }
+.is-bar-fill { height: 100%; background: linear-gradient(90deg,#8a6a3a,#c9a26a); border-radius: 8px; }
+/* ノートタグ */
+.is-note-h {
+  font-family: 'Geist Mono',monospace; font-size: 24px; letter-spacing: 0.2em;
+  color: #c9a26a; text-transform: uppercase; margin: 44px 0 20px;
+}
+.is-tags { display: flex; flex-wrap: wrap; gap: 16px; }
+.is-tag {
+  border: 1px solid #4a3a2c; color: #e8ddc7;
+  padding: 14px 26px; border-radius: 6px;
+  font-size: 34px; font-family: 'Source Sans 3','Noto Sans JP',sans-serif;
+}
+.is-memo {
+  font-family: 'Crimson Pro','Noto Serif JP',serif;
+  font-style: italic;
+  font-size: 44px;
+  line-height: 1.6;
+  color: #c0b09a;
+  margin-top: 40px;
+}
+/* ── 書き出し画面（アプリ内UI） ── */
+#insta-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 3000;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+#insta-overlay.show { display: block; }
+.insta-head {
+  position: sticky; top: 0;
+  background: var(--s1);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 10px;
+  z-index: 5;
+}
+.insta-head h2 {
+  flex: 1;
+  font-family: 'Crimson Pro','Noto Serif JP',serif;
+  font-size: 19px; font-weight: 600; color: var(--text);
+}
+.insta-close {
+  background: none; border: 1px solid var(--border2); color: var(--muted);
+  border-radius: 4px; padding: 6px 12px; font-size: 12px; cursor: pointer;
+  font-family: 'Source Sans 3',sans-serif;
+}
+.insta-body { padding: 16px 16px 60px; }
+.insta-handle-row { margin-bottom: 16px; }
+.insta-preview-list { display: flex; flex-direction: column; gap: 18px; }
+.insta-card {
+  background: var(--s1); border: 1px solid var(--border); border-radius: 6px;
+  overflow: hidden;
+}
+.insta-card-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px; border-bottom: 1px solid var(--border);
+}
+.insta-card-title {
+  font-family: 'Geist Mono',monospace; font-size: 11px;
+  letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase;
+}
+.btn-dl {
+  background: var(--accent); color: var(--badge-text); border: none;
+  border-radius: 4px; padding: 6px 12px; font-size: 11.5px; font-weight: 700;
+  cursor: pointer; font-family: 'Source Sans 3',sans-serif;
+}
+/* プレビュー枠（実寸をscaleで縮小表示） */
+.insta-thumb { width: 100%; aspect-ratio: 1080 / 1350; overflow: hidden; position: relative; background: #1a1612; }
+.insta-thumb > .insta-slide {
+  position: absolute; top: 0; left: 0;
+  transform-origin: top left;
+}
+.insta-actions { display: flex; gap: 8px; margin-bottom: 16px; }
+.insta-actions button { flex: 1; padding: 13px; border-radius: 4px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: 'Source Sans 3',sans-serif; }
+.btn-dl-all { background: var(--accent); color: var(--badge-text); border: 1px solid var(--accent); }
+.btn-share-all { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -2399,6 +2598,7 @@ body {
     </div>
     <!-- 画像URLは非表示（カメラスキャンから自動セット） -->
     <input type="hidden" id="f-imgurl" />
+    <input type="hidden" id="f-imgurl-back" />
   </div>
 
   <!-- 店呑みセクション -->
@@ -2493,15 +2693,38 @@ body {
     <div id="modal-img-area"></div>
     <div class="modal-body" id="modal-body"></div>
     <div style="padding: 16px 16px 0;">
-      <button id="modal-recommend-btn" onclick="openComposeFromModal()" class="btn-recommend-big">友達にこの一杯を薦める</button>
+      <button id="modal-insta-btn" onclick="openInstaExport()" class="btn-recommend-big">インスタ用に書き出す</button>
     </div>
     <div class="modal-actions">
       <button class="btn-close" onclick="closeModal()">閉じる</button>
       <button class="btn-edit" id="modal-edit-btn" onclick="editEntry()">編集</button>
+      <button class="btn-edit" id="modal-recommend-btn" onclick="openComposeFromModal()">薦める</button>
       <button class="btn-delete" id="modal-delete-btn" onclick="deleteEntry()">削除</button>
     </div>
   </div>
 </div>
+
+<!-- インスタ書き出し画面 -->
+<div id="insta-overlay">
+  <div class="insta-head">
+    <h2 id="insta-title">インスタ用スライド</h2>
+    <button class="insta-close" onclick="closeInstaExport()">閉じる</button>
+  </div>
+  <div class="insta-body">
+    <div class="insta-handle-row">
+      <div class="form-label">アカウント名 <small>HANDLE</small></div>
+      <input class="form-input" id="insta-handle" type="text" placeholder="@your_account" oninput="onHandleInput()" />
+    </div>
+    <div class="insta-actions">
+      <button class="btn-dl-all" onclick="downloadAllSlides()">すべて保存</button>
+      <button class="btn-share-all" onclick="shareAllSlides()">まとめて共有</button>
+    </div>
+    <div class="insta-preview-list" id="insta-preview-list"></div>
+  </div>
+</div>
+
+<!-- 実寸1080x1350のレンダリング用ステージ（画面外） -->
+<div id="insta-stage" aria-hidden="true"></div>
 
 <!-- トースト -->
 <div id="toast">
@@ -2849,6 +3072,7 @@ function parseEntry(page) {
     status: getSelect('ステータス'),
     author: getText('登録者'),
     imgUrl: getUrl('画像URL'),
+    imgBackUrl: getUrl('画像URL裏'),
     shopName: getText('店名'),
     mapsUrl: getUrl('マップURL'),
     drinkStyle: getSelect('飲み方'),
@@ -3380,6 +3604,7 @@ function editEntry() {
     document.getElementById('f-drinkstyle-home').value = e.drinkStyle || '';
     document.getElementById('f-imgurl').value = e.imgUrl;
   }
+  document.getElementById('f-imgurl-back').value = e.imgBackUrl || '';
 
   if (e.rating) {
     selectedRating = e.rating;
@@ -3458,6 +3683,8 @@ function onPhotoSelected(event, side) {
       backImageData = { base64, mediaType };
       // 裏も撮ったら再スキャン
       await doScan();
+      // 裏画像もR2にアップロード（インスタ用スライドで使う）
+      await uploadBackImage();
     }
   };
   reader.readAsDataURL(file);
@@ -3514,11 +3741,24 @@ async function uploadFrontImage() {
     const data = await res.json();
     if (data.url) {
       document.getElementById('f-imgurl').value = data.url;
-      showToast('画像を保存しました', '🖼️');
+      showToast('画像を保存しました', '✓');
     }
   } catch(e) {
     // アップロード失敗は無視（手動でURL入力可能）
   }
+}
+
+async function uploadBackImage() {
+  if (!backImageData) return;
+  try {
+    const res = await fetch(`${WORKER_URL}/upload`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: backImageData.base64, mediaType: backImageData.mediaType }),
+    });
+    const data = await res.json();
+    if (data.url) document.getElementById('f-imgurl-back').value = data.url;
+  } catch(e) { /* 失敗は無視 */ }
 }
 
 function applyScannedData(data) {
@@ -3754,6 +3994,7 @@ async function submitForm() {
     if (imgUrl) properties['画像URL'] = { url: imgUrl };
   } else {
     // 店呑み
+
     const shopName = document.getElementById('f-shopname').value.trim();
     if (shopName) properties['店名'] = { rich_text: [{ text: { content: shopName } }] };
     const mapsUrl = document.getElementById('f-mapsurl').value.trim();
@@ -3765,6 +4006,9 @@ async function submitForm() {
     const imgUrl = document.getElementById('f-imgurl-bar').value.trim();
     if (imgUrl) properties['画像URL'] = { url: imgUrl };
   }
+  // 裏ラベル画像は家呑み/店呑み共通（インスタ用スライドで使用）
+  const imgBackUrl = document.getElementById('f-imgurl-back').value.trim();
+  if (imgBackUrl) properties['画像URL裏'] = { url: imgBackUrl };
 
   try {
     if (editingId) {
@@ -3792,7 +4036,7 @@ async function submitForm() {
 function resetForm() {
   ['f-name','f-distillery','f-age','f-abv','f-memo',
    'f-price','f-date','f-imgurl',
-   'f-shopname','f-mapsurl','f-unitprice','f-imgurl-bar'].forEach(id => {
+   'f-shopname','f-mapsurl','f-unitprice','f-imgurl-bar','f-imgurl-back'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -3819,6 +4063,254 @@ function resetForm() {
   document.getElementById('camera-area-back').style.display = 'none';
   document.getElementById('scan-result-badge').classList.remove('visible');
   document.getElementById('submit-btn').textContent = '— 登録する —';
+}
+
+// ============================================
+// インスタ用スライド書き出し
+// ============================================
+let instaEntry = null;
+let instaSlides = [];   // [{key,label,html}]
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+// 香り/味/フィニッシュのタグから6軸の強さ(1〜5)を算出
+const FLAVOR_AXES = [
+  { name:'甘み',      keys:['甘口','ハチミツ','バニラ','キャラメル','甘い','チョコレート','米の甘み','蜂蜜','黒糖','甘味'] },
+  { name:'スモーキー', keys:['スモーキー','ピーティ','ロースト','香ばしい','コーヒー'] },
+  { name:'フルーティ', keys:['フルーティ','シトラス','ベリー','メロン','青リンゴ','ドライフルーツ','トロピカル','ライチ','バナナ','プラム','チェリー','カシス','果実味','吟醸香'] },
+  { name:'スパイシー', keys:['スパイシー','ペッパリー','スパイス','ジュニパー','ハーブ','ミント'] },
+  { name:'コク',      keys:['リッチ','濃醇','コク','フルボディ','オーキー','オーク','樽','レザー','タンニン','旨味','まろやか','クリーミー'] },
+  { name:'余韻',      keys:['長い','余韻深い','ウォーム','なめらか'] }
+];
+function flavorProfile(e){
+  const all = [].concat(e.aroma||[], e.taste||[], e.finish||[]);
+  return FLAVOR_AXES.map(ax => {
+    const hits = ax.keys.filter(k => all.some(v => String(v).indexOf(k) >= 0)).length;
+    const score = hits === 0 ? 1 : Math.min(5, 1 + hits * 1.6);
+    return { name: ax.name, score: Math.round(score * 10) / 10 };
+  });
+}
+function starMarkup(rating){
+  const n = { '★5':5,'★4':4,'★3':3,'★2':2,'★1':1 }[rating] || 0;
+  let s = '';
+  for (let i=1;i<=5;i++) s += '<span class="'+(i<=n?'':'off')+'">★</span>';
+  return s;
+}
+function getHandle(){ return localStorage.getItem('insta_handle') || ''; }
+function onHandleInput(){
+  const v = document.getElementById('insta-handle').value.trim();
+  localStorage.setItem('insta_handle', v);
+  if (instaEntry) renderInstaSlides();   // ハンドル反映のため作り直し
+}
+
+// ── スライドHTMLを組み立て ──
+function buildInstaSlides(e){
+  const handle = esc(getHandle());
+  const foot = (page, total) =>
+    '<div class="is-foot"><div class="is-handle">'+(handle||'')+'</div><div class="is-page">'+page+' / '+total+'</div></div>';
+  const cat = esc(e.category || 'ウイスキー');
+  const slides = [];
+
+  // 1. 表紙（正面写真＋銘柄名＋スコア）
+  slides.push({ key:'cover', label:'表紙', html:
+    '<div class="insta-slide">'+
+      (e.imgUrl ? '<div class="is-photo"><img crossorigin="anonymous" src="'+esc(e.imgUrl)+'"></div>' : '')+
+      '<div class="is-scrim"></div>'+
+      '<div class="is-pad" style="position:relative;height:100%;display:flex;flex-direction:column">'+
+        '<div class="is-kicker">'+cat+'</div>'+
+        '<div style="margin-top:auto">'+
+          '<div class="is-stars">'+starMarkup(e.rating)+'</div>'+
+          '<div class="is-title" style="margin-top:24px">'+esc(e.name)+'</div>'+
+          (e.distillery ? '<div class="is-sub">'+esc(e.distillery)+(e.region?' · '+esc(e.region):'')+'</div>' : '')+
+        '</div>'+
+      '</div>'+
+    '</div>' });
+
+  // 2. 背面/ラベル（あれば）
+  if (e.imgBackUrl) {
+    slides.push({ key:'back', label:'背面', html:
+      '<div class="insta-slide">'+
+        '<div class="is-photo is-photo-contain"><img crossorigin="anonymous" src="'+esc(e.imgBackUrl)+'"></div>'+
+        '<div class="is-pad" style="position:relative;height:100%;display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(10,8,6,.7),transparent 30%,rgba(10,8,6,.85))">'+
+          '<div class="is-kicker">Label</div>'+
+          '<div style="margin-top:auto"></div>'+
+        '</div>'+
+      '</div>' });
+  }
+
+  // 3. スペック
+  const specs = [
+    ['CATEGORY', cat],
+    [(e.category==='日本酒'||e.category==='ビール')?'BREWERY':'DISTILLERY', e.distillery],
+    ['REGION', e.region],
+    ['TYPE', e.type],
+    ['ABV', e.abv!=null&&e.abv!=='' ? e.abv+'%' : ''],
+    [e.category==='ワイン'?'VINTAGE':'AGE', e.age!=null&&e.age!=='' ? (e.category==='ワイン'? e.age : e.age+'年') : '']
+  ].filter(r => r[1]);
+  slides.push({ key:'spec', label:'スペック', html:
+    '<div class="insta-slide is-pad">'+
+      '<div class="is-kicker">Specification</div><div class="is-rule"></div>'+
+      '<div style="margin-bottom:10px">'+
+        specs.map(r => '<div class="is-row"><div class="is-row-k">'+esc(r[0])+'</div><div class="is-row-v">'+esc(r[1])+'</div></div>').join('')+
+      '</div>'+
+      foot(slides.length+1, 0)+
+    '</div>' });
+
+  // 4. フレーバーチャート
+  const prof = flavorProfile(e);
+  slides.push({ key:'flavor', label:'フレーバー', html:
+    '<div class="insta-slide is-pad">'+
+      '<div class="is-kicker">Flavor Profile</div><div class="is-rule"></div>'+
+      '<div style="margin-top:20px">'+
+        prof.map(p =>
+          '<div class="is-bar-row">'+
+            '<div class="is-bar-top"><div class="is-bar-name">'+esc(p.name)+'</div><div class="is-bar-num">'+p.score.toFixed(1)+'</div></div>'+
+            '<div class="is-bar-track"><div class="is-bar-fill" style="width:'+(p.score/5*100)+'%"></div></div>'+
+          '</div>').join('')+
+      '</div>'+
+      foot(slides.length+1, 0)+
+    '</div>' });
+
+  // 5. テイスティングノート
+  const tagBlock = (title, arr) => (arr&&arr.length)
+    ? '<div class="is-note-h">'+title+'</div><div class="is-tags">'+arr.map(t=>'<span class="is-tag">'+esc(t)+'</span>').join('')+'</div>'
+    : '';
+  slides.push({ key:'notes', label:'ノート', html:
+    '<div class="insta-slide is-pad">'+
+      '<div class="is-kicker">Tasting Notes</div><div class="is-rule"></div>'+
+      tagBlock('香り / NOSE', e.aroma)+
+      tagBlock('味 / PALATE', e.taste)+
+      tagBlock('余韻 / FINISH', e.finish)+
+      foot(slides.length+1, 0)+
+    '</div>' });
+
+  // 6. 評価＋ひとこと
+  slides.push({ key:'score', label:'評価', html:
+    '<div class="insta-slide is-pad">'+
+      '<div class="is-kicker">My Rating</div><div class="is-rule"></div>'+
+      '<div style="margin-top:60px">'+
+        '<div class="is-stars" style="font-size:86px">'+starMarkup(e.rating)+'</div>'+
+        '<div class="is-score-big" style="margin-top:20px">'+(ratingToScore(e.rating)||'—')+'</div>'+
+        '<div class="is-sub" style="margin-top:8px">'+esc(e.name)+'</div>'+
+      '</div>'+
+      (e.memo ? '<div class="is-memo">「'+esc(e.memo).slice(0,140)+'」</div>' : '')+
+      foot(slides.length+1, 0)+
+    '</div>' });
+
+  // ページ番号の総数を確定
+  const total = slides.length;
+  slides.forEach((s,i) => { s.html = s.html.replace(/(\d+) \/ 0<\/div>/, (i+1)+' / '+total+'</div>'); });
+  return slides;
+}
+
+// ── 書き出し画面を開く ──
+function openInstaExport(){
+  const e = allEntries.find(x => x.id === currentModalId);
+  if (!e) { showToast('記録が見つかりません', '⚠'); return; }
+  instaEntry = e;
+  closeModal();
+  document.getElementById('insta-title').textContent = e.name || 'インスタ用スライド';
+  document.getElementById('insta-handle').value = getHandle();
+  renderInstaSlides();
+  document.getElementById('insta-overlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeInstaExport(){
+  document.getElementById('insta-overlay').classList.remove('show');
+  document.body.style.overflow = '';
+  document.getElementById('insta-stage').innerHTML = '';
+  instaEntry = null;
+}
+
+// ステージ（実寸）とプレビュー（縮小）を作る
+function renderInstaSlides(){
+  if (!instaEntry) return;
+  instaSlides = buildInstaSlides(instaEntry);
+  // 実寸ステージ
+  const stage = document.getElementById('insta-stage');
+  stage.innerHTML = instaSlides.map(s => s.html).join('');
+  // プレビュー
+  const list = document.getElementById('insta-preview-list');
+  list.innerHTML = instaSlides.map((s,i) =>
+    '<div class="insta-card">'+
+      '<div class="insta-card-head">'+
+        '<span class="insta-card-title">'+(i+1)+'. '+esc(s.label)+'</span>'+
+        '<button class="btn-dl" onclick="downloadSlide('+i+')">保存</button>'+
+      '</div>'+
+      '<div class="insta-thumb" id="insta-thumb-'+i+'">'+s.html+'</div>'+
+    '</div>').join('');
+  // サムネを枠幅に合わせて縮小
+  requestAnimationFrame(scaleInstaThumbs);
+}
+function scaleInstaThumbs(){
+  instaSlides.forEach((s,i) => {
+    const box = document.getElementById('insta-thumb-'+i);
+    if (!box) return;
+    const inner = box.querySelector('.insta-slide');
+    if (!inner) return;
+    inner.style.transform = 'scale(' + (box.clientWidth / 1080) + ')';
+  });
+}
+window.addEventListener('resize', () => { if (instaEntry) scaleInstaThumbs(); });
+
+// ── PNG化 ──
+async function slideToBlob(index){
+  const stage = document.getElementById('insta-stage');
+  const el = stage.children[index];
+  if (!el) throw new Error('スライドが見つかりません');
+  const canvas = await html2canvas(el, {
+    width: 1080, height: 1350, scale: 1,
+    backgroundColor: '#1a1612',
+    useCORS: true, allowTaint: false, logging: false
+  });
+  return await new Promise(res => canvas.toBlob(res, 'image/png'));
+}
+function slideFileName(i){
+  const base = (instaEntry && instaEntry.name ? instaEntry.name : 'slide').replace(/[\\/:*?"<>|\s]+/g,'_').slice(0,40);
+  return base + '_' + String(i+1).padStart(2,'0') + '.png';
+}
+async function downloadSlide(i){
+  try {
+    showToast('画像を作成中…', '⏳');
+    const blob = await slideToBlob(i);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = slideFileName(i);
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    showToast(slideFileName(i) + ' を保存', '✓');
+  } catch(err) { showToast('作成に失敗: ' + err.message, '⚠'); }
+}
+async function downloadAllSlides(){
+  try {
+    for (let i=0;i<instaSlides.length;i++){
+      showToast('作成中 ' + (i+1) + '/' + instaSlides.length, '⏳');
+      const blob = await slideToBlob(i);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = slideFileName(i);
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 6000);
+      await new Promise(r => setTimeout(r, 350)); // 連続DLのブロック回避
+    }
+    showToast('全' + instaSlides.length + '枚を保存', '✓');
+  } catch(err) { showToast('作成に失敗: ' + err.message, '⚠'); }
+}
+async function shareAllSlides(){
+  if (!navigator.canShare) { showToast('この端末は共有に未対応。「すべて保存」を使ってね', '⚠'); return; }
+  try {
+    showToast('画像を作成中…', '⏳');
+    const files = [];
+    for (let i=0;i<instaSlides.length;i++){
+      const blob = await slideToBlob(i);
+      files.push(new File([blob], slideFileName(i), { type: 'image/png' }));
+    }
+    if (!navigator.canShare({ files })) { showToast('この端末は画像共有に未対応', '⚠'); return; }
+    await navigator.share({ files, title: instaEntry.name || '' });
+  } catch(err) {
+    if (err && err.name === 'AbortError') return;
+    showToast('共有に失敗: ' + err.message, '⚠');
+  }
 }
 
 // ── トースト ──────────────────────────────────────────────────────────────
