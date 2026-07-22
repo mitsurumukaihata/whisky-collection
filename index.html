@@ -2262,7 +2262,6 @@ body {
 .btn-dl-all { background: var(--accent); color: var(--badge-text); border: 1px solid var(--accent); }
 .btn-share-all { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -2716,9 +2715,6 @@ body {
       <div class="form-label">アカウント名 <small>HANDLE</small></div>
       <input class="form-input" id="insta-handle" type="text" placeholder="@your_account" oninput="onHandleInput()" />
     </div>
-    <div class="insta-actions">
-      <button class="btn-dl-all" id="btn-prepare" onclick="prepareSlides()">画像を作る</button>
-    </div>
     <div class="insta-actions" id="insta-actions-ready" style="display:none">
       <button class="btn-dl-all" id="btn-save-all" onclick="shareAllSlides()">写真に保存</button>
       <button class="btn-share-all" id="btn-dl-all" onclick="downloadAllSlides()">PCへDL</button>
@@ -2727,9 +2723,6 @@ body {
     <div class="insta-preview-list" id="insta-preview-list"></div>
   </div>
 </div>
-
-<!-- 実寸1080x1350のレンダリング用ステージ（画面外） -->
-<div id="insta-stage" aria-hidden="true"></div>
 
 <!-- トースト -->
 <div id="toast">
@@ -4071,12 +4064,27 @@ function resetForm() {
 }
 
 // ============================================
-// インスタ用スライド書き出し
+// インスタ用スライド書き出し（Canvas 2D 直接描画）
+// html2canvas はDOM複製＋CSS解析で1枚15秒かかり実用不可だったため自前描画に変更
 // ============================================
 let instaEntry = null;
-let instaSlides = [];   // [{key,label,html}]
+let instaSlides = [];    // [{key,label,canvas}]
+let instaBlobs  = [];
 
-function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+const IS_W = 1080, IS_H = 1350;
+const C_BG='#1a1612', C_TEXT='#e8ddc7', C_GOLD='#c9a26a', C_MUTED='#9a8a72',
+      C_LINE='#3a2e24', C_SOFT='#c0b09a', C_TRACK='#2a241e', C_DIM='#6a5c48';
+const F_SERIF = '"Crimson Pro","Noto Serif JP",serif';
+const F_SANS  = '"Source Sans 3","Noto Sans JP",sans-serif';
+const F_MONO  = '"Geist Mono",monospace';
+const PAD = 80;
+
+function getHandle(){ return localStorage.getItem('insta_handle') || ''; }
+function onHandleInput(){
+  const v = document.getElementById('insta-handle').value.trim();
+  localStorage.setItem('insta_handle', v);
+  if (instaEntry) renderInstaSlides();
+}
 
 // 香り/味/フィニッシュのタグから6軸の強さ(1〜5)を算出
 const FLAVOR_AXES = [
@@ -4095,297 +4103,394 @@ function flavorProfile(e){
     return { name: ax.name, score: Math.round(score * 10) / 10 };
   });
 }
-function starMarkup(rating){
-  const n = { '★5':5,'★4':4,'★3':3,'★2':2,'★1':1 }[rating] || 0;
-  let s = '';
-  for (let i=1;i<=5;i++) s += '<span class="'+(i<=n?'':'off')+'">★</span>';
-  return s;
+function ratingNum(rating){ return { '★5':5,'★4':4,'★3':3,'★2':2,'★1':1 }[rating] || 0; }
+
+// ── 描画ヘルパ ──
+function newCanvas(){
+  const c = document.createElement('canvas');
+  c.width = IS_W; c.height = IS_H;
+  return c;
 }
-function getHandle(){ return localStorage.getItem('insta_handle') || ''; }
-function onHandleInput(){
-  const v = document.getElementById('insta-handle').value.trim();
-  localStorage.setItem('insta_handle', v);
-  if (instaEntry) renderInstaSlides();   // ハンドル反映のため作り直し
+function setFont(ctx, o){
+  ctx.font = (o.weight||400) + ' ' + (o.size||32) + 'px ' + (o.family||F_SANS);
+  try { ctx.letterSpacing = (o.ls||0) + 'px'; } catch(e){}
 }
-
-// ── スライドHTMLを組み立て ──
-function buildInstaSlides(e){
-  const handle = esc(getHandle());
-  const foot = (page, total) =>
-    '<div class="is-foot"><div class="is-handle">'+(handle||'')+'</div><div class="is-page">'+page+' / '+total+'</div></div>';
-  const cat = esc(e.category || 'ウイスキー');
-  const slides = [];
-
-  // 1. 表紙（正面写真＋銘柄名＋スコア）
-  slides.push({ key:'cover', label:'表紙', html:
-    '<div class="insta-slide">'+
-      (e.imgUrl ? '<div class="is-photo"><img crossorigin="anonymous" src="'+esc(e.imgUrl)+'"></div>' : '')+
-      '<div class="is-scrim"></div>'+
-      '<div class="is-pad" style="position:relative;height:100%;display:flex;flex-direction:column">'+
-        '<div class="is-kicker">'+cat+'</div>'+
-        '<div style="margin-top:auto">'+
-          '<div class="is-stars">'+starMarkup(e.rating)+'</div>'+
-          '<div class="is-title" style="margin-top:24px">'+esc(e.name)+'</div>'+
-          (e.distillery ? '<div class="is-sub">'+esc(e.distillery)+(e.region?' · '+esc(e.region):'')+'</div>' : '')+
-        '</div>'+
-      '</div>'+
-    '</div>' });
-
-  // 2. 背面/ラベル（あれば）
-  if (e.imgBackUrl) {
-    slides.push({ key:'back', label:'背面', html:
-      '<div class="insta-slide">'+
-        '<div class="is-photo is-photo-contain"><img crossorigin="anonymous" src="'+esc(e.imgBackUrl)+'"></div>'+
-        '<div class="is-pad" style="position:relative;height:100%;display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(10,8,6,.7),transparent 30%,rgba(10,8,6,.85))">'+
-          '<div class="is-kicker">Label</div>'+
-          '<div style="margin-top:auto"></div>'+
-        '</div>'+
-      '</div>' });
+function txt(ctx, str, x, y, o){
+  o = o || {};
+  setFont(ctx, o);
+  ctx.fillStyle = o.color || C_TEXT;
+  ctx.textAlign = o.align || 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(String(str), x, y);
+  try { ctx.letterSpacing = '0px'; } catch(e){}
+}
+// 文字単位で折返し（日本語対応）。最終行のyを返す
+function wrapTxt(ctx, str, x, y, maxW, o){
+  o = o || {};
+  setFont(ctx, o);
+  ctx.fillStyle = o.color || C_TEXT;
+  ctx.textAlign = o.align || 'left';
+  ctx.textBaseline = 'alphabetic';
+  const lh = o.lineHeight || Math.round((o.size||32) * 1.3);
+  let line = '', yy = y;
+  const chars = Array.from(String(str));
+  for (let i=0;i<chars.length;i++){
+    const t = line + chars[i];
+    if (ctx.measureText(t).width > maxW && line){
+      ctx.fillText(line, x, yy); yy += lh; line = chars[i];
+    } else line = t;
   }
+  if (line) ctx.fillText(line, x, yy);
+  try { ctx.letterSpacing = '0px'; } catch(e){}
+  return yy;
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function fillBg(ctx){ ctx.fillStyle = C_BG; ctx.fillRect(0,0,IS_W,IS_H); }
+function drawImgCover(ctx, img){
+  const s = Math.max(IS_W/img.width, IS_H/img.height);
+  const w = img.width*s, h = img.height*s;
+  ctx.drawImage(img, (IS_W-w)/2, (IS_H-h)/2, w, h);
+}
+function drawImgContain(ctx, img){
+  ctx.fillStyle = '#0e0c08'; ctx.fillRect(0,0,IS_W,IS_H);
+  const s = Math.min(IS_W/img.width, IS_H/img.height);
+  const w = img.width*s, h = img.height*s;
+  ctx.drawImage(img, (IS_W-w)/2, (IS_H-h)/2, w, h);
+}
+function drawScrim(ctx){
+  const g = ctx.createLinearGradient(0,0,0,IS_H);
+  g.addColorStop(0,   'rgba(10,8,6,0.72)');
+  g.addColorStop(0.38,'rgba(10,8,6,0.18)');
+  g.addColorStop(1,   'rgba(10,8,6,0.88)');
+  ctx.fillStyle = g; ctx.fillRect(0,0,IS_W,IS_H);
+}
+function drawKicker(ctx, label, y){
+  txt(ctx, String(label).toUpperCase(), PAD, y, { size:26, family:F_MONO, weight:500, color:C_GOLD, ls:9 });
+}
+function drawRule(ctx, y){
+  ctx.fillStyle = C_GOLD; ctx.fillRect(PAD, y, 90, 2);
+}
+function drawStars(ctx, n, x, y, size){
+  setFont(ctx, { size:size, family:F_SANS, weight:400, ls:Math.round(size*0.14) });
+  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  let cx = x;
+  for (let i=1;i<=5;i++){
+    ctx.fillStyle = i<=n ? C_GOLD : '#4a3a2c';
+    ctx.fillText('★', cx, y);
+    cx += ctx.measureText('★').width + size*0.14;
+  }
+  try { ctx.letterSpacing='0px'; } catch(e){}
+}
+function drawFoot(ctx, page, total){
+  const h = getHandle();
+  if (h) txt(ctx, h, PAD, IS_H-72, { size:26, family:F_MONO, weight:400, color:C_GOLD, ls:4 });
+  txt(ctx, page + ' / ' + total, IS_W-PAD, IS_H-72,
+      { size:24, family:F_MONO, weight:400, color:C_DIM, ls:3, align:'right' });
+}
+// タグ群を描く。次のyを返す
+function drawTags(ctx, arr, y, maxW){
+  const padX=26, padY=14, fs=34, gap=16, rowH=fs+padY*2;
+  let x = PAD, yy = y;
+  setFont(ctx, { size:fs, family:F_SANS, weight:400 });
+  arr.forEach(function(t){
+    const w = ctx.measureText(t).width + padX*2;
+    if (x + w > PAD + maxW) { x = PAD; yy += rowH + gap; }
+    ctx.strokeStyle = '#4a3a2c'; ctx.lineWidth = 1.5;
+    roundRect(ctx, x, yy, w, rowH, 6); ctx.stroke();
+    txt(ctx, t, x+padX, yy+rowH-padY-6, { size:fs, family:F_SANS, weight:400, color:C_TEXT });
+    setFont(ctx, { size:fs, family:F_SANS, weight:400 });
+    x += w + gap;
+  });
+  return yy + rowH;
+}
 
-  // 3. スペック
-  const specs = [
-    ['CATEGORY', cat],
+// ── 各スライドを描く ──
+function drawCover(ctx, e, imgFront, page, total){
+  fillBg(ctx);
+  if (imgFront) drawImgCover(ctx, imgFront);
+  drawScrim(ctx);
+  drawKicker(ctx, e.category || 'ウイスキー', 130);
+  // 下寄せブロック
+  let y = IS_H - 300;
+  drawStars(ctx, ratingNum(e.rating), PAD, y, 62);
+  y += 96;
+  const titleSize = (e.name && e.name.length > 14) ? 68 : 92;
+  y = wrapTxt(ctx, e.name || '', PAD, y, IS_W-PAD*2,
+        { size:titleSize, family:F_SERIF, weight:600, color:'#fff', lineHeight:Math.round(titleSize*1.12) });
+  const sub = [e.distillery, e.region].filter(Boolean).join(' · ');
+  if (sub) txt(ctx, sub.toUpperCase(), PAD, y+46, { size:26, family:F_MONO, weight:400, color:C_MUTED, ls:4 });
+  drawFoot(ctx, page, total);
+}
+function drawBack(ctx, e, imgBack, page, total){
+  fillBg(ctx);
+  if (imgBack) drawImgContain(ctx, imgBack);
+  const g = ctx.createLinearGradient(0,0,0,IS_H);
+  g.addColorStop(0,'rgba(10,8,6,0.72)');
+  g.addColorStop(0.3,'rgba(10,8,6,0)');
+  g.addColorStop(1,'rgba(10,8,6,0.85)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,IS_W,IS_H);
+  drawKicker(ctx, 'Label', 130);
+  drawFoot(ctx, page, total);
+}
+function drawSpec(ctx, e, page, total){
+  fillBg(ctx);
+  drawKicker(ctx, 'Specification', 130);
+  drawRule(ctx, 168);
+  const rows = [
+    ['CATEGORY', e.category || 'ウイスキー'],
     [(e.category==='日本酒'||e.category==='ビール')?'BREWERY':'DISTILLERY', e.distillery],
     ['REGION', e.region],
     ['TYPE', e.type],
-    ['ABV', e.abv!=null&&e.abv!=='' ? e.abv+'%' : ''],
-    [e.category==='ワイン'?'VINTAGE':'AGE', e.age!=null&&e.age!=='' ? (e.category==='ワイン'? e.age : e.age+'年') : '']
-  ].filter(r => r[1]);
-  slides.push({ key:'spec', label:'スペック', html:
-    '<div class="insta-slide is-pad">'+
-      '<div class="is-kicker">Specification</div><div class="is-rule"></div>'+
-      '<div style="margin-bottom:10px">'+
-        specs.map(r => '<div class="is-row"><div class="is-row-k">'+esc(r[0])+'</div><div class="is-row-v">'+esc(r[1])+'</div></div>').join('')+
-      '</div>'+
-      foot(slides.length+1, 0)+
-    '</div>' });
-
-  // 4. フレーバーチャート
+    ['ABV', (e.abv!=null && e.abv!=='') ? e.abv+'%' : ''],
+    [e.category==='ワイン'?'VINTAGE':'AGE', (e.age!=null && e.age!=='') ? (e.category==='ワイン'? String(e.age) : e.age+'年') : '']
+  ].filter(function(r){ return r[1]; });
+  let y = 268;
+  rows.forEach(function(r){
+    txt(ctx, r[0], PAD, y, { size:25, family:F_MONO, weight:400, color:C_MUTED, ls:4 });
+    txt(ctx, r[1], IS_W-PAD, y+4, { size:46, family:F_SERIF, weight:600, color:C_TEXT, align:'right' });
+    y += 30;
+    ctx.fillStyle = C_LINE; ctx.fillRect(PAD, y, IS_W-PAD*2, 1);
+    y += 60;
+  });
+  drawFoot(ctx, page, total);
+}
+function drawFlavor(ctx, e, page, total){
+  fillBg(ctx);
+  drawKicker(ctx, 'Flavor Profile', 130);
+  drawRule(ctx, 168);
   const prof = flavorProfile(e);
-  slides.push({ key:'flavor', label:'フレーバー', html:
-    '<div class="insta-slide is-pad">'+
-      '<div class="is-kicker">Flavor Profile</div><div class="is-rule"></div>'+
-      '<div style="margin-top:20px">'+
-        prof.map(p =>
-          '<div class="is-bar-row">'+
-            '<div class="is-bar-top"><div class="is-bar-name">'+esc(p.name)+'</div><div class="is-bar-num">'+p.score.toFixed(1)+'</div></div>'+
-            '<div class="is-bar-track"><div class="is-bar-fill" style="width:'+(p.score/5*100)+'%"></div></div>'+
-          '</div>').join('')+
-      '</div>'+
-      foot(slides.length+1, 0)+
-    '</div>' });
-
-  // 5. テイスティングノート
-  const tagBlock = (title, arr) => (arr&&arr.length)
-    ? '<div class="is-note-h">'+title+'</div><div class="is-tags">'+arr.map(t=>'<span class="is-tag">'+esc(t)+'</span>').join('')+'</div>'
-    : '';
-  slides.push({ key:'notes', label:'ノート', html:
-    '<div class="insta-slide is-pad">'+
-      '<div class="is-kicker">Tasting Notes</div><div class="is-rule"></div>'+
-      tagBlock('香り / NOSE', e.aroma)+
-      tagBlock('味 / PALATE', e.taste)+
-      tagBlock('余韻 / FINISH', e.finish)+
-      foot(slides.length+1, 0)+
-    '</div>' });
-
-  // 6. 評価＋ひとこと
-  slides.push({ key:'score', label:'評価', html:
-    '<div class="insta-slide is-pad">'+
-      '<div class="is-kicker">My Rating</div><div class="is-rule"></div>'+
-      '<div style="margin-top:60px">'+
-        '<div class="is-stars" style="font-size:86px">'+starMarkup(e.rating)+'</div>'+
-        '<div class="is-score-big" style="margin-top:20px">'+(ratingToScore(e.rating)||'—')+'</div>'+
-        '<div class="is-sub" style="margin-top:8px">'+esc(e.name)+'</div>'+
-      '</div>'+
-      (e.memo ? '<div class="is-memo">「'+esc(e.memo).slice(0,140)+'」</div>' : '')+
-      foot(slides.length+1, 0)+
-    '</div>' });
-
-  // ページ番号の総数を確定
-  const total = slides.length;
-  slides.forEach((s,i) => { s.html = s.html.replace(/(\d+) \/ 0<\/div>/, (i+1)+' / '+total+'</div>'); });
-  return slides;
+  const maxW = IS_W - PAD*2;
+  let y = 280;
+  prof.forEach(function(p){
+    txt(ctx, p.name, PAD, y, { size:42, family:F_SERIF, weight:600, color:C_TEXT });
+    txt(ctx, p.score.toFixed(1), IS_W-PAD, y, { size:26, family:F_MONO, weight:400, color:C_MUTED, align:'right' });
+    const by = y + 22;
+    ctx.fillStyle = C_TRACK; roundRect(ctx, PAD, by, maxW, 16, 8); ctx.fill();
+    const g = ctx.createLinearGradient(PAD, 0, PAD+maxW, 0);
+    g.addColorStop(0,'#8a6a3a'); g.addColorStop(1,C_GOLD);
+    ctx.fillStyle = g; roundRect(ctx, PAD, by, Math.max(16, maxW*(p.score/5)), 16, 8); ctx.fill();
+    y += 118;
+  });
+  drawFoot(ctx, page, total);
+}
+function drawNotes(ctx, e, page, total){
+  fillBg(ctx);
+  drawKicker(ctx, 'Tasting Notes', 130);
+  drawRule(ctx, 168);
+  const maxW = IS_W - PAD*2;
+  let y = 270;
+  const groups = [['香り / NOSE', e.aroma], ['味 / PALATE', e.taste], ['余韻 / FINISH', e.finish]];
+  groups.forEach(function(g){
+    if (!g[1] || !g[1].length) return;
+    txt(ctx, g[0], PAD, y, { size:24, family:F_MONO, weight:400, color:C_GOLD, ls:5 });
+    y = drawTags(ctx, g[1], y+30, maxW) + 60;
+  });
+  drawFoot(ctx, page, total);
+}
+function drawScore(ctx, e, page, total){
+  fillBg(ctx);
+  drawKicker(ctx, 'My Rating', 130);
+  drawRule(ctx, 168);
+  let y = 340;
+  drawStars(ctx, ratingNum(e.rating), PAD, y, 86);
+  y += 200;
+  txt(ctx, (typeof ratingToScore==='function' ? (ratingToScore(e.rating)||'—') : '—'), PAD, y,
+      { size:200, family:F_SERIF, weight:700, color:C_GOLD });
+  y += 56;
+  txt(ctx, String(e.name||'').toUpperCase(), PAD, y, { size:26, family:F_MONO, weight:400, color:C_MUTED, ls:4 });
+  if (e.memo){
+    y += 90;
+    wrapTxt(ctx, '「' + String(e.memo).slice(0,140) + '」', PAD, y, IS_W-PAD*2,
+      { size:44, family:F_SERIF, weight:400, color:C_SOFT, lineHeight:70 });
+  }
+  drawFoot(ctx, page, total);
 }
 
-// ── 書き出し画面を開く ──
+// ── フォント/画像の準備 ──
+async function ensureFonts(){
+  if (!document.fonts) return;
+  const specs = [
+    '600 92px '+F_SERIF, '600 46px '+F_SERIF, '700 200px '+F_SERIF, '400 44px '+F_SERIF,
+    '500 26px '+F_MONO,  '400 24px '+F_MONO,
+    '400 34px '+F_SANS,  '400 62px '+F_SANS
+  ];
+  try { await Promise.all(specs.map(s => document.fonts.load(s))); } catch(e){}
+  try { await document.fonts.ready; } catch(e){}
+}
+function loadImg(src){
+  return new Promise(function(res){
+    if (!src) return res(null);
+    const im = new Image();
+    im.crossOrigin = 'anonymous';
+    im.onload = function(){ res(im); };
+    im.onerror = function(){ res(null); };
+    im.src = src;
+  });
+}
+
+// ── スライド一式を描画（Canvasを作って返す） ──
+async function buildInstaCanvases(e){
+  await ensureFonts();
+  const [imgFront, imgBack] = await Promise.all([loadImg(e.imgUrl), loadImg(e.imgBackUrl)]);
+  const plan = [{key:'cover',label:'表紙'}];
+  if (imgBack) plan.push({key:'back',label:'背面'});
+  plan.push({key:'spec',label:'スペック'},{key:'flavor',label:'フレーバー'},
+            {key:'notes',label:'ノート'},{key:'score',label:'評価'});
+  const total = plan.length;
+  return plan.map(function(p, i){
+    const c = newCanvas();
+    const ctx = c.getContext('2d');
+    const page = i+1;
+    if (p.key==='cover')       drawCover(ctx, e, imgFront, page, total);
+    else if (p.key==='back')   drawBack(ctx, e, imgBack, page, total);
+    else if (p.key==='spec')   drawSpec(ctx, e, page, total);
+    else if (p.key==='flavor') drawFlavor(ctx, e, page, total);
+    else if (p.key==='notes')  drawNotes(ctx, e, page, total);
+    else                       drawScore(ctx, e, page, total);
+    return { key:p.key, label:p.label, canvas:c };
+  });
+}
+
+// ── 画面 ──
 function openInstaExport(){
-  const e = allEntries.find(x => x.id === currentModalId);
+  const e = allEntries.find(function(x){ return x.id === currentModalId; });
   if (!e) { showToast('記録が見つかりません', '⚠'); return; }
   instaEntry = e;
   closeModal();
   document.getElementById('insta-title').textContent = e.name || 'インスタ用スライド';
   document.getElementById('insta-handle').value = getHandle();
-  renderInstaSlides();
   document.getElementById('insta-overlay').classList.add('show');
   document.body.style.overflow = 'hidden';
+  renderInstaSlides();
 }
 function closeInstaExport(){
   document.getElementById('insta-overlay').classList.remove('show');
   document.body.style.overflow = '';
-  document.getElementById('insta-stage').innerHTML = '';
-  instaEntry = null;
+  document.getElementById('insta-preview-list').innerHTML = '';
+  instaSlides = []; instaBlobs = []; instaEntry = null;
 }
-
-// ステージ（実寸）とプレビュー（縮小）を作る
-function renderInstaSlides(){
-  if (!instaEntry) return;
-  instaSlides = buildInstaSlides(instaEntry);
-  // 作り直したらキャッシュは無効
-  instaBlobs = [];
-  const ready = document.getElementById('insta-actions-ready');
-  if (ready) ready.style.display = 'none';
-  const pbtn = document.getElementById('btn-prepare');
-  if (pbtn) pbtn.textContent = '画像を作る';
-  // 端末に応じてボタン表記を変える
-  const saveBtn = document.getElementById('btn-save-all');
-  const dlBtn = document.getElementById('btn-dl-all');
-  if (saveBtn && dlBtn) {
-    if (isMobileDevice()) { saveBtn.textContent = '写真に保存（まとめて）'; dlBtn.style.display = 'none'; }
-    else { saveBtn.textContent = '共有'; dlBtn.style.display = ''; dlBtn.textContent = 'すべてダウンロード'; }
-  }
-  setInstaStatus('');
-  // 実寸ステージ
-  const stage = document.getElementById('insta-stage');
-  stage.innerHTML = instaSlides.map(s => s.html).join('');
-  // プレビュー
-  const list = document.getElementById('insta-preview-list');
-  list.innerHTML = instaSlides.map((s,i) =>
-    '<div class="insta-card">'+
-      '<div class="insta-card-head">'+
-        '<span class="insta-card-title">'+(i+1)+'. '+esc(s.label)+'</span>'+
-        '<button class="btn-dl" onclick="downloadSlide('+i+')">保存</button>'+
-      '</div>'+
-      '<div class="insta-thumb" id="insta-thumb-'+i+'">'+s.html+'</div>'+
-    '</div>').join('');
-  // サムネを枠幅に合わせて縮小
-  requestAnimationFrame(scaleInstaThumbs);
-}
-function scaleInstaThumbs(){
-  instaSlides.forEach((s,i) => {
-    const box = document.getElementById('insta-thumb-'+i);
-    if (!box) return;
-    const inner = box.querySelector('.insta-slide');
-    if (!inner) return;
-    inner.style.transform = 'scale(' + (box.clientWidth / 1080) + ')';
-  });
-}
-window.addEventListener('resize', () => { if (instaEntry) scaleInstaThumbs(); });
-
-// ── PNG化 ──
-// フォント読込＆画像読込を待ってから焼く（別フォントで固まるのを防ぐ）
-async function waitAssetsReady(){
-  try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch(e){}
-  const imgs = Array.from(document.querySelectorAll('#insta-stage img'));
-  await Promise.all(imgs.map(im => im.complete ? Promise.resolve()
-    : new Promise(res => { im.onload = res; im.onerror = res; })));
-}
-async function slideToBlob(index){
-  const stage = document.getElementById('insta-stage');
-  const el = stage.children[index];
-  if (!el) throw new Error('スライドが見つかりません');
-  const canvas = await html2canvas(el, {
-    width: 1080, height: 1350, scale: 1,
-    backgroundColor: '#1a1612',
-    useCORS: true, allowTaint: false, logging: false
-  });
-  return await new Promise(res => canvas.toBlob(res, 'image/png'));
-}
-
-// 生成済みBlobのキャッシュ（iOSは「タップ→即共有」でないと弾かれるため事前に作る）
-let instaBlobs = [];
 function setInstaStatus(msg, done){
   const el = document.getElementById('insta-status');
   if (!el) return;
   el.textContent = msg || '';
-  el.style.cssText = 'font-size:12px;margin-bottom:14px;letter-spacing:0.02em;color:' +
-    (done ? 'var(--accent)' : 'var(--muted)');
+  el.style.cssText = 'font-size:12px;margin-bottom:14px;color:' + (done ? 'var(--accent)' : 'var(--muted)');
 }
-async function prepareSlides(){
-  const btn = document.getElementById('btn-prepare');
-  if (btn) { btn.disabled = true; btn.textContent = '作成中…'; }
+async function renderInstaSlides(){
+  if (!instaEntry) return;
   instaBlobs = [];
+  const list = document.getElementById('insta-preview-list');
+  setInstaStatus('スライドを描画中…');
   try {
-    setInstaStatus('フォントと写真を読み込み中…');
-    await waitAssetsReady();
-    for (let i = 0; i < instaSlides.length; i++){
-      setInstaStatus('画像を作成中… ' + (i+1) + ' / ' + instaSlides.length);
-      instaBlobs.push(await slideToBlob(i));
-      await new Promise(r => setTimeout(r, 30)); // 端末の描画を挟む
-    }
-    document.getElementById('insta-actions-ready').style.display = 'flex';
-    setInstaStatus(instaSlides.length + '枚できました。「写真に保存」を押してね', true);
-    if (btn) btn.textContent = '作り直す';
+    instaSlides = await buildInstaCanvases(instaEntry);
   } catch(err) {
-    setInstaStatus('作成に失敗: ' + err.message);
-    if (btn) btn.textContent = '画像を作る';
-  } finally {
-    if (btn) btn.disabled = false;
+    setInstaStatus('描画に失敗: ' + err.message);
+    return;
+  }
+  list.innerHTML = '';
+  instaSlides.forEach(function(s, i){
+    const card = document.createElement('div');
+    card.className = 'insta-card';
+    const head = document.createElement('div');
+    head.className = 'insta-card-head';
+    head.innerHTML = '<span class="insta-card-title">'+(i+1)+'. '+s.label+'</span>';
+    const btn = document.createElement('button');
+    btn.className = 'btn-dl'; btn.textContent = '保存';
+    btn.onclick = function(){ saveOne(i); };
+    head.appendChild(btn);
+    s.canvas.style.cssText = 'width:100%;height:auto;display:block';
+    card.appendChild(head); card.appendChild(s.canvas);
+    list.appendChild(card);
+  });
+  // ボタン表記を端末別に
+  const saveBtn = document.getElementById('btn-save-all');
+  const dlBtn = document.getElementById('btn-dl-all');
+  if (saveBtn && dlBtn){
+    if (isMobileDevice()){ saveBtn.textContent = '写真に保存（まとめて）'; dlBtn.style.display='none'; }
+    else { saveBtn.textContent = '共有'; dlBtn.style.display=''; dlBtn.textContent = 'すべてダウンロード'; }
+  }
+  document.getElementById('insta-actions-ready').style.display = 'flex';
+  const prep = document.getElementById('btn-prepare');
+  if (prep) prep.style.display = 'none';   // 事前生成ボタンは不要（描画が速いので即完成）
+  setInstaStatus(instaSlides.length + '枚できました', true);
+}
+function isMobileDevice(){
+  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+         (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+}
+function slideFileName(i){
+  const base = (instaEntry && instaEntry.name ? instaEntry.name : 'slide')
+    .replace(/[\\/:*?"<>|\s]+/g,'_').slice(0,40);
+  return base + '_' + String(i+1).padStart(2,'0') + '.png';
+}
+function canvasToBlob(c){
+  return new Promise(function(res){ c.toBlob(res, 'image/png'); });
+}
+async function ensureBlobs(){
+  if (instaBlobs.length === instaSlides.length) return;
+  instaBlobs = [];
+  for (let i=0;i<instaSlides.length;i++){
+    instaBlobs.push(await canvasToBlob(instaSlides[i].canvas));
   }
 }
 function instaFiles(){
-  return instaBlobs.map((b,i) => new File([b], slideFileName(i), { type: 'image/png' }));
+  return instaBlobs.map(function(b,i){ return new File([b], slideFileName(i), { type:'image/png' }); });
 }
-function slideFileName(i){
-  const base = (instaEntry && instaEntry.name ? instaEntry.name : 'slide').replace(/[\\/:*?"<>|\s]+/g,'_').slice(0,40);
-  return base + '_' + String(i+1).padStart(2,'0') + '.png';
+function dlBlob(blob, name){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
 }
-// 1枚だけ（キャッシュがあれば使う）
-async function downloadSlide(i){
+async function saveOne(i){
   try {
-    let blob = instaBlobs[i];
-    if (!blob) { showToast('画像を作成中…', '⏳'); await waitAssetsReady(); blob = await slideToBlob(i); }
-    // スマホは共有シート経由（写真に保存できる）、PCはダウンロード
-    const file = new File([blob], slideFileName(i), { type: 'image/png' });
-    if (isMobileDevice() && navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file] });
+    const blob = await canvasToBlob(instaSlides[i].canvas);
+    const file = new File([blob], slideFileName(i), { type:'image/png' });
+    if (isMobileDevice() && navigator.canShare && navigator.canShare({ files:[file] })){
+      await navigator.share({ files:[file] });
       return;
     }
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = slideFileName(i);
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    dlBlob(blob, slideFileName(i));
     showToast(slideFileName(i) + ' を保存', '✓');
-  } catch(err) {
+  } catch(err){
     if (err && err.name === 'AbortError') return;
     showToast('失敗: ' + err.message, '⚠');
   }
 }
-function isMobileDevice(){
-  return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
-         (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent)); // iPadOS
-}
-// PC向け: 連続ダウンロード（キャッシュ必須）
 async function downloadAllSlides(){
-  if (!instaBlobs.length) { showToast('先に「画像を作る」を押してね', '⚠'); return; }
+  if (!instaSlides.length) return;
+  await ensureBlobs();
   for (let i=0;i<instaBlobs.length;i++){
-    const url = URL.createObjectURL(instaBlobs[i]);
-    const a = document.createElement('a');
-    a.href = url; a.download = slideFileName(i);
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url), 6000);
-    await new Promise(r => setTimeout(r, 350));
+    dlBlob(instaBlobs[i], slideFileName(i));
+    await new Promise(function(r){ setTimeout(r, 350); });
   }
   showToast('全' + instaBlobs.length + '枚を保存', '✓');
 }
-// スマホ向け: まとめて写真に保存（タップから即 share するのが肝）
 async function shareAllSlides(){
-  if (!instaBlobs.length) { showToast('先に「画像を作る」を押してね', '⚠'); return; }
-  const files = instaFiles();
-  if (!navigator.canShare || !navigator.canShare({ files })) {
-    // 共有不可な端末はダウンロードにフォールバック
-    showToast('この端末は共有非対応。順に保存します', '⚠');
-    return downloadAllSlides();
-  }
+  if (!instaSlides.length) return;
   try {
-    await navigator.share({ files, title: (instaEntry && instaEntry.name) || '' });
-    setInstaStatus('保存できたら Instagram で5枚選んでカルーセル投稿してね', true);
-  } catch(err) {
+    await ensureBlobs();          // Canvas→PNGは高速なのでタップ内で完結する
+    const files = instaFiles();
+    if (!navigator.canShare || !navigator.canShare({ files })){
+      showToast('この端末は共有非対応。順に保存します', '⚠');
+      return downloadAllSlides();
+    }
+    await navigator.share({ files, title:(instaEntry && instaEntry.name) || '' });
+    setInstaStatus('写真に保存できたら Instagram で選んでカルーセル投稿してね', true);
+  } catch(err){
     if (err && err.name === 'AbortError') return;
     showToast('共有に失敗: ' + err.message, '⚠');
   }
 }
+function prepareSlides(){ renderInstaSlides(); }   // 旧ボタン互換
 
 // ── トースト ──────────────────────────────────────────────────────────────
 let toastTimer;
