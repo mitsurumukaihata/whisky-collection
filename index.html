@@ -4284,8 +4284,8 @@ const REGION_EN = {
 function catEN(c){ return CAT_EN[c] || 'SPIRITS'; }
 function regionEN(r){ return (r in REGION_EN) ? REGION_EN[r] : String(r||'').toUpperCase(); }
 
-// 画像を指定枠に contain 配置し、下に柔らかい映り込み影を落とす
-// rotDeg: 傾き補正（度）。傾いたボトルをまっすぐにする
+// 画像を指定枠に contain 配置し、縁をふわっと溶かして背景ぼかしに馴染ませる。
+// rotDeg: 傾き補正（度）。回転で出る写真の角も羽ばたかせて隠す。
 function drawProductShot(ctx, img, cx, cy, boxW, boxH, rotDeg){
   const s = Math.min(boxW/img.width, boxH/img.height);
   const w = img.width*s, h = img.height*s;
@@ -4301,12 +4301,28 @@ function drawProductShot(ctx, img, cx, cy, boxW, boxH, rotDeg){
   ctx.ellipse(cx, y+h-6, w*0.5, 34, 0, 0, Math.PI*2);
   ctx.fill();
   ctx.restore();
-  // 本体（中心まわりに回転）
-  ctx.save();
-  ctx.translate(cx, cy);
-  if (rotDeg) ctx.rotate(rotDeg * Math.PI / 180);
-  ctx.drawImage(img, -w/2, -h/2, w, h);
-  ctx.restore();
+  // 本体はオフスクリーンに回転描画 → 楕円フェザーで縁を溶かす → 合成
+  const oc = document.createElement('canvas'); oc.width = IS_W; oc.height = IS_H;
+  const o = oc.getContext('2d');
+  o.save();
+  o.translate(cx, cy);
+  if (rotDeg) o.rotate(rotDeg * Math.PI / 180);
+  o.drawImage(img, -w/2, -h/2, w, h);
+  o.restore();
+  // フェザー（中央は不透明・外周だけ透明へ）: 楕円マスク
+  o.globalCompositeOperation = 'destination-in';
+  const rx = w * 0.66, ry = h * 0.60;
+  const mg = o.createRadialGradient(cx, cy, Math.min(rx,ry)*0.55, cx, cy, Math.max(rx,ry));
+  mg.addColorStop(0, 'rgba(0,0,0,1)');
+  mg.addColorStop(0.82, 'rgba(0,0,0,1)');
+  mg.addColorStop(1, 'rgba(0,0,0,0)');
+  // 楕円状にするため座標変換して円グラデを引き延ばす
+  o.save();
+  o.translate(cx, cy); o.scale(rx/Math.max(rx,ry), ry/Math.max(rx,ry)); o.translate(-cx, -cy);
+  o.fillStyle = mg; o.fillRect(-IS_W, -IS_H, IS_W*3, IS_H*3);
+  o.restore();
+  o.globalCompositeOperation = 'source-over';
+  ctx.drawImage(oc, 0, 0);
 }
 
 // ── 各スライドを描く ──
