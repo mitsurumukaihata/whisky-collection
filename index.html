@@ -2715,6 +2715,16 @@ body {
       <div class="form-label">アカウント名 <small>HANDLE</small></div>
       <input class="form-input" id="insta-handle" type="text" placeholder="@your_account" oninput="onHandleInput()" />
     </div>
+    <div class="insta-handle-row" id="insta-rot-row" style="display:none">
+      <div class="form-label" style="display:flex;justify-content:space-between;align-items:center">
+        <span>表紙の傾き補正 <small>TILT</small></span>
+        <span id="insta-rot-val" style="font-family:'Geist Mono',monospace;color:var(--accent);font-size:11px">0°</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="range" id="insta-rot" min="-20" max="20" step="0.5" value="0" style="flex:1" oninput="onRotInput(this.value)" />
+        <button type="button" onclick="resetRot()" style="background:none;border:1px solid var(--border2);color:var(--muted);border-radius:4px;padding:5px 9px;font-size:11px;cursor:pointer;font-family:'Source Sans 3',sans-serif">戻す</button>
+      </div>
+    </div>
     <div class="insta-actions" id="insta-actions-ready" style="display:none">
       <button class="btn-dl-all" id="btn-save-all" onclick="shareAllSlides()">写真に保存</button>
       <button class="btn-share-all" id="btn-dl-all" onclick="downloadAllSlides()">PCへDL</button>
@@ -4086,6 +4096,37 @@ function onHandleInput(){
   if (instaEntry) renderInstaSlides();
 }
 
+// 表紙の傾き補正（記録ごとに保存）
+function getCoverRot(e){
+  const id = e && e.id;
+  if (!id) return 0;
+  const v = parseFloat(localStorage.getItem('insta_rot_' + id));
+  return isNaN(v) ? 0 : v;
+}
+function onRotInput(val){
+  if (!instaEntry) return;
+  const deg = parseFloat(val) || 0;
+  localStorage.setItem('insta_rot_' + instaEntry.id, String(deg));
+  document.getElementById('insta-rot-val').textContent = deg.toFixed(1).replace(/\.0$/,'') + '°';
+  redrawCoverOnly();
+}
+function resetRot(){
+  const r = document.getElementById('insta-rot');
+  if (r) r.value = 0;
+  onRotInput(0);
+}
+// 表紙(スライド0)だけ描き直して差し替える（軽量・スライダー用）
+function redrawCoverOnly(){
+  if (!instaEntry || !instaSlides.length || instaSlides[0].key !== 'cover') return;
+  const s = instaSlides[0];
+  const ctx = s.canvas.getContext('2d');
+  ctx.clearRect(0,0,s.canvas.width,s.canvas.height);
+  drawCover(ctx, instaEntry, instaCoverImg, 1, instaSlides.length);
+  instaBlobs = [];                       // 表紙が変わったのでキャッシュ破棄
+  ensureBlobs().catch(function(){});     // 裏で作り直し
+}
+let instaCoverImg = null;   // 表紙用の表画像（再描画で使い回す）
+
 // 香り/味/フィニッシュのタグから6軸の強さ(1〜5)を算出
 const FLAVOR_AXES = [
   { name:'甘み',      keys:['甘口','ハチミツ','バニラ','キャラメル','甘い','チョコレート','米の甘み','蜂蜜','黒糖','甘味'] },
@@ -4244,11 +4285,12 @@ function catEN(c){ return CAT_EN[c] || 'SPIRITS'; }
 function regionEN(r){ return (r in REGION_EN) ? REGION_EN[r] : String(r||'').toUpperCase(); }
 
 // 画像を指定枠に contain 配置し、下に柔らかい映り込み影を落とす
-function drawProductShot(ctx, img, cx, cy, boxW, boxH){
+// rotDeg: 傾き補正（度）。傾いたボトルをまっすぐにする
+function drawProductShot(ctx, img, cx, cy, boxW, boxH, rotDeg){
   const s = Math.min(boxW/img.width, boxH/img.height);
   const w = img.width*s, h = img.height*s;
-  const x = cx - w/2, y = cy - h/2;
-  // 接地影
+  const y = cy - h/2;
+  // 接地影（回転しない・足元に固定）
   ctx.save();
   ctx.globalAlpha = 0.35;
   const sh = ctx.createRadialGradient(cx, y+h-10, 10, cx, y+h-10, w*0.55);
@@ -4259,27 +4301,47 @@ function drawProductShot(ctx, img, cx, cy, boxW, boxH){
   ctx.ellipse(cx, y+h-6, w*0.5, 34, 0, 0, Math.PI*2);
   ctx.fill();
   ctx.restore();
-  ctx.drawImage(img, x, y, w, h);
+  // 本体（中心まわりに回転）
+  ctx.save();
+  ctx.translate(cx, cy);
+  if (rotDeg) ctx.rotate(rotDeg * Math.PI / 180);
+  ctx.drawImage(img, -w/2, -h/2, w, h);
+  ctx.restore();
 }
 
 // ── 各スライドを描く ──
-// D: ポスター型（カテゴリ色＋中央グロー＋製品ショット＋大きい銘柄名）
+// D: ポスター型（背景ぼかし＋カテゴリ色＋製品ショット＋大きい銘柄名）
 function drawCover(ctx, e, imgFront, page, total){
   const cat = e.category || 'ウイスキー';
   const th = catTheme(cat);
-  // 背景グラデ
+  const rot = getCoverRot(e);
+  // 背景グラデ（ベース）
   const g = ctx.createLinearGradient(0, 0, 0, IS_H);
   g.addColorStop(0, th.top);
   g.addColorStop(1, th.bot);
   ctx.fillStyle = g; ctx.fillRect(0, 0, IS_W, IS_H);
+
+  // 背景ぼかし（同じ写真を全面に伸ばして強くぼかす＝ポートレート風）
+  if (imgFront) {
+    ctx.save();
+    try { ctx.filter = 'blur(46px) brightness(0.55) saturate(1.1)'; } catch(_){}
+    // ぼかしの縁が出ないよう少し外側まで cover 配置
+    const s = Math.max((IS_W+180)/imgFront.width, (IS_H+180)/imgFront.height);
+    const w = imgFront.width*s, h = imgFront.height*s;
+    ctx.drawImage(imgFront, (IS_W-w)/2, (IS_H-h)/2, w, h);
+    ctx.restore();
+    // カテゴリ色でトーンを統一（フィードの色分けを保つ）
+    ctx.fillStyle = 'rgba('+hexToRgb(th.bot)+',0.5)';
+    ctx.fillRect(0, 0, IS_W, IS_H);
+  }
   // 中央グロー
-  const rg = ctx.createRadialGradient(IS_W/2, 580, 80, IS_W/2, 580, 640);
-  rg.addColorStop(0, 'rgba('+th.glow+',0.22)');
+  const rg = ctx.createRadialGradient(IS_W/2, 580, 80, IS_W/2, 580, 660);
+  rg.addColorStop(0, 'rgba('+th.glow+',0.20)');
   rg.addColorStop(1, 'rgba('+th.glow+',0)');
   ctx.fillStyle = rg; ctx.fillRect(0, 0, IS_W, IS_H);
 
-  // 製品ショット（ボトルを大きく：枠を拡大して中央に）
-  if (imgFront) drawProductShot(ctx, imgFront, IS_W/2, 590, 940, 1000);
+  // 製品ショット（ボトルを大きく＋傾き補正）
+  if (imgFront) drawProductShot(ctx, imgFront, IS_W/2, 590, 940, 1000, rot);
   else {
     // 写真なし: カテゴリ色のボトル型プレースホルダ
     ctx.fillStyle = 'rgba('+th.glow+',0.14)';
@@ -4460,6 +4522,7 @@ function loadImg(src){
 async function buildInstaCanvases(e){
   await ensureFonts();
   const [imgFront, imgBack] = await Promise.all([loadImg(e.imgUrl), loadImg(e.imgBackUrl)]);
+  instaCoverImg = imgFront;   // 傾きスライダーの再描画で使い回す
   const plan = [{key:'cover',label:'表紙'}];
   if (imgBack) plan.push({key:'back',label:'背面'});
   plan.push({key:'spec',label:'スペック'},{key:'flavor',label:'フレーバー'},
@@ -4529,6 +4592,20 @@ async function renderInstaSlides(){
     card.appendChild(head); card.appendChild(s.canvas);
     list.appendChild(card);
   });
+  // 傾き補正スライダー（表紙写真がある時だけ表示）
+  const rotRow = document.getElementById('insta-rot-row');
+  if (rotRow){
+    if (instaCoverImg){
+      rotRow.style.display = '';
+      const cur = getCoverRot(instaEntry);
+      const r = document.getElementById('insta-rot');
+      if (r) r.value = cur;
+      const rv = document.getElementById('insta-rot-val');
+      if (rv) rv.textContent = (Number(cur).toFixed(1).replace(/\.0$/,'')) + '°';
+    } else {
+      rotRow.style.display = 'none';
+    }
+  }
   // ボタン表記を端末別に
   const saveBtn = document.getElementById('btn-save-all');
   const dlBtn = document.getElementById('btn-dl-all');
