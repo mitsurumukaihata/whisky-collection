@@ -4309,16 +4309,18 @@ function drawProductShot(ctx, img, cx, cy, boxW, boxH, rotDeg){
   if (rotDeg) o.rotate(rotDeg * Math.PI / 180);
   o.drawImage(img, -w/2, -h/2, w, h);
   o.restore();
-  // フェザー（中央は不透明・外周だけ透明へ）: 楕円マスク
+  // フェザー: ボトルに沿った「縦長カプセル」だけ残し、すぐ横〜外周をボカす。
+  // rx を狭め ry を高くして、ボトルの左右のテーブル/棚をぼかす。
   o.globalCompositeOperation = 'destination-in';
-  const rx = w * 0.66, ry = h * 0.60;
-  const mg = o.createRadialGradient(cx, cy, Math.min(rx,ry)*0.55, cx, cy, Math.max(rx,ry));
+  const rx = w * 0.42, ry = h * 0.64;   // 横は狭く（すぐ回りをボカす）縦は高く（瓶全体は残す）
+  const R = Math.max(rx, ry);
+  const mg = o.createRadialGradient(cx, cy, R*0.30, cx, cy, R);
   mg.addColorStop(0, 'rgba(0,0,0,1)');
-  mg.addColorStop(0.82, 'rgba(0,0,0,1)');
-  mg.addColorStop(1, 'rgba(0,0,0,0)');
-  // 楕円状にするため座標変換して円グラデを引き延ばす
+  mg.addColorStop(0.66, 'rgba(0,0,0,1)');   // ここまで不透明（ボトル本体）
+  mg.addColorStop(1, 'rgba(0,0,0,0)');       // 外周はなだらかに透明→背景ボケへ
+  // 円グラデを楕円に引き延ばす
   o.save();
-  o.translate(cx, cy); o.scale(rx/Math.max(rx,ry), ry/Math.max(rx,ry)); o.translate(-cx, -cy);
+  o.translate(cx, cy); o.scale(rx/R, ry/R); o.translate(-cx, -cy);
   o.fillStyle = mg; o.fillRect(-IS_W, -IS_H, IS_W*3, IS_H*3);
   o.restore();
   o.globalCompositeOperation = 'source-over';
