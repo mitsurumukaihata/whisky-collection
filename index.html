@@ -4278,10 +4278,6 @@ function drawCover(ctx, e, imgFront, page, total){
   rg.addColorStop(1, 'rgba('+th.glow+',0)');
   ctx.fillStyle = rg; ctx.fillRect(0, 0, IS_W, IS_H);
 
-  // 上部キッカー（英字カテゴリ）＋罫線
-  txt(ctx, catEN(cat), IS_W/2, 148, { size:30, family:F_MONO, weight:500, color:th.accent, ls:11, align:'center' });
-  ctx.fillStyle = th.accent; ctx.fillRect(IS_W/2-46, 184, 92, 2);
-
   // 製品ショット（ボトルを大きく：枠を拡大して中央に）
   if (imgFront) drawProductShot(ctx, imgFront, IS_W/2, 590, 940, 1000);
   else {
@@ -4291,29 +4287,38 @@ function drawCover(ctx, e, imgFront, page, total){
     txt(ctx, 'NO PHOTO', IS_W/2, 590, { size:26, family:F_MONO, weight:400, color:th.accent, ls:6, align:'center' });
   }
 
+  // 上部スクリム（大きいボトルの上にキッカー文字を重ねても読めるように）
+  const tsc = ctx.createLinearGradient(0, 0, 0, 260);
+  tsc.addColorStop(0, 'rgba('+hexToRgb(th.top)+',0.92)');
+  tsc.addColorStop(1, 'rgba('+hexToRgb(th.top)+',0)');
+  ctx.fillStyle = tsc; ctx.fillRect(0, 0, IS_W, 260);
+  // 上部キッカー（英字カテゴリ）＋罫線 — 写真の上に描く
+  txt(ctx, catEN(cat), IS_W/2, 130, { size:30, family:F_MONO, weight:500, color:th.accent, ls:11, align:'center' });
+  ctx.fillStyle = th.accent; ctx.fillRect(IS_W/2-46, 166, 92, 2);
+
   // 下部スクリム（大きいボトルの裾に文字を重ねても読めるよう暗くする）
-  const sc = ctx.createLinearGradient(0, 960, 0, IS_H);
+  const sc = ctx.createLinearGradient(0, 940, 0, IS_H);
   sc.addColorStop(0, 'rgba('+hexToRgb(th.bot)+',0)');
-  sc.addColorStop(0.5, 'rgba('+hexToRgb(th.bot)+',0.82)');
+  sc.addColorStop(0.45, 'rgba('+hexToRgb(th.bot)+',0.85)');
   sc.addColorStop(1, 'rgba('+hexToRgb(th.bot)+',1)');
-  ctx.fillStyle = sc; ctx.fillRect(0, 960, IS_W, IS_H-960);
+  ctx.fillStyle = sc; ctx.fillRect(0, 940, IS_W, IS_H-940);
 
   // 銘柄名（日本語・中央・大）
   const len = (e.name||'').length;
-  const titleSize = len > 18 ? 62 : (len > 11 ? 74 : 86);
-  let y = wrapCenter(ctx, e.name || '', IS_W/2, 1110, IS_W-130,
-        { size:titleSize, family:F_SERIF, weight:600, color:'#fff', lineHeight:Math.round(titleSize*1.08) });
+  const titleSize = len > 18 ? 60 : (len > 11 ? 72 : 84);
+  let y = wrapCenter(ctx, e.name || '', IS_W/2, 1072, IS_W-130,
+        { size:titleSize, family:F_SERIF, weight:600, color:'#fff', lineHeight:Math.round(titleSize*1.06) });
   // サブ（英字を交える）: 蒸留所（日本語可）· 地域=英字
   const sub = [e.distillery, regionEN(e.region)].filter(Boolean).join('  ·  ');
-  if (sub) txt(ctx, sub, IS_W/2, y+50, { size:24, family:F_MONO, weight:400, color:C_MUTED, ls:3, align:'center' });
+  if (sub) txt(ctx, sub, IS_W/2, y+48, { size:24, family:F_MONO, weight:400, color:C_MUTED, ls:3, align:'center' });
   // 評価スター（中央）
   const n = ratingNum(e.rating);
-  if (n) drawStarsCenter(ctx, n, IS_W/2, y+120, 48, th.accent);
+  if (n) drawStarsCenter(ctx, n, IS_W/2, y+116, 46, th.accent);
 
   // フッター（ハンドルは中央、ページは右下）
   const h = getHandle();
-  if (h) txt(ctx, h, IS_W/2, IS_H-56, { size:24, family:F_MONO, weight:400, color:th.accent, ls:4, align:'center' });
-  txt(ctx, page + ' / ' + total, IS_W-PAD, IS_H-56, { size:22, family:F_MONO, weight:400, color:C_DIM, ls:3, align:'right' });
+  if (h) txt(ctx, h, IS_W/2, IS_H-44, { size:24, family:F_MONO, weight:400, color:th.accent, ls:4, align:'center' });
+  txt(ctx, page + ' / ' + total, IS_W-PAD, IS_H-44, { size:22, family:F_MONO, weight:400, color:C_DIM, ls:3, align:'right' });
 }
 // #rrggbb → "r,g,b"
 function hexToRgb(hex){
