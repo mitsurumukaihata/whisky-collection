@@ -211,7 +211,8 @@ function safeDecode(v) {
 function j(obj, status, cors) {
   return new Response(JSON.stringify(obj), {
     status,
-    headers: { ...cors, "Content-Type": "application/json" }
+    // 保存直後に古い内容を掴まないよう、JSON応答はキャッシュさせない
+    headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" }
   });
 }
 
