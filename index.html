@@ -543,6 +543,14 @@ textarea.field { resize: vertical; min-height: 62px; line-height: 1.5; }
 
     <div class="caption-box">
       <div class="caption-head">
+        <span>ひとこと（4枚目に入る自分の言葉）</span>
+      </div>
+      <textarea class="field" id="note-text" rows="3" placeholder="例）森みたいな香り。ハイボールが正解だった。" oninput="onNoteInput()"></textarea>
+      <div class="caption-note" id="note-note">書くと保存されます。画像への反映は作り直しが必要です</div>
+    </div>
+
+    <div class="caption-box">
+      <div class="caption-head">
         <span>投稿の本文</span>
         <button class="btn-ghost" id="btn-copy" onclick="copyCaption()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M15 9V6a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2h3"/></svg>
@@ -1390,6 +1398,7 @@ function openBottle(i) {
   ).join('');
   $('bottle-view').classList.add('show');
   loadCaption(bottleCur);
+  loadNote(bottleCur);
   // 保存ボタンを押した瞬間に共有できるよう、開いた時点で裏で取っておく
   prefetchBottle(bottleCur);
 }
@@ -1439,6 +1448,59 @@ async function saveCaption() {
     if (captions) captions[bottleCur.no] = text;
     note.className = 'caption-note saved';
     note.textContent = '保存しました';
+  } catch (e) {
+    note.className = 'caption-note';
+    note.textContent = '保存に失敗しました: ' + e.message;
+  }
+}
+
+// ── ひとこと（4枚目に入れる自分の言葉） ──────────────────────────────────
+let notes = null;
+let noteSaveTimer = null;
+
+async function ensureNotes() {
+  if (notes) return notes;
+  try {
+    const res = await fetch(`${API}/studio/notes`);
+    const data = await res.json();
+    notes = data.notes || {};
+  } catch (e) { notes = {}; }
+  return notes;
+}
+
+async function loadNote(g) {
+  const ta = $('note-text'), note = $('note-note');
+  ta.value = ''; note.className = 'caption-note'; note.textContent = '読み込み中…';
+  const n = await ensureNotes();
+  if (bottleCur !== g) return;
+  ta.value = n[g.no] || '';
+  note.textContent = ta.value
+    ? '書くと保存されます。画像への反映は作り直しが必要です'
+    : 'ここに書いた言葉が4枚目に入ります（画像の作り直しが必要）';
+}
+
+function onNoteInput() {
+  const note = $('note-note');
+  note.className = 'caption-note';
+  note.textContent = '入力中…';
+  clearTimeout(noteSaveTimer);
+  noteSaveTimer = setTimeout(saveNote, 900);
+}
+
+async function saveNote() {
+  if (!bottleCur || !bottleCur.no) return;
+  const text = $('note-text').value;
+  const note = $('note-note');
+  try {
+    const res = await fetch(`${API}/studio/notes`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes: { [bottleCur.no]: text }, merge: true }),
+    });
+    const d = await res.json();
+    if (!res.ok || d.error) throw new Error(d.error || `HTTP ${res.status}`);
+    if (notes) notes[bottleCur.no] = text;
+    note.className = 'caption-note saved';
+    note.textContent = '保存しました（画像に入れるときは作り直します）';
   } catch (e) {
     note.className = 'caption-note';
     note.textContent = '保存に失敗しました: ' + e.message;

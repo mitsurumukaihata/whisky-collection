@@ -80,6 +80,33 @@ export default {
       } catch (e) { return j({ error: e.message }, 500, cors); }
     }
 
+    // ── /studio/notes ─ 評価ページに入れる「ひとこと」────────────
+    // 画像そのものはPC側で作り直すので、ここは文字だけを預かる場所
+    if (url.pathname === "/studio/notes" && request.method === "GET") {
+      try {
+        const obj = await env.IMAGES.get("studio_notes.json");
+        if (!obj) return j({ notes: {} }, 200, cors);
+        return j({ notes: JSON.parse(await obj.text()) }, 200, cors);
+      } catch (e) { return j({ notes: {}, error: e.message }, 200, cors); }
+    }
+    if (url.pathname === "/studio/notes" && request.method === "POST") {
+      try {
+        const body = await request.json();
+        const notes = body && body.notes;
+        if (!notes || typeof notes !== "object") return j({ error: "notes is required" }, 400, cors);
+        let next = notes;
+        if (body.merge === true) {
+          const cur = await env.IMAGES.get("studio_notes.json");
+          const prev = cur ? JSON.parse(await cur.text()) : {};
+          next = { ...prev, ...notes };
+        }
+        await env.IMAGES.put("studio_notes.json", JSON.stringify(next), {
+          httpMetadata: { contentType: "application/json; charset=utf-8" }
+        });
+        return j({ ok: true, count: Object.keys(next).length }, 200, cors);
+      } catch (e) { return j({ error: e.message }, 500, cors); }
+    }
+
     // ── /studio/delete ─ 保存済みを1件削除 ─────────────────────
     if (url.pathname === "/studio/delete" && request.method === "POST") {
       try {
