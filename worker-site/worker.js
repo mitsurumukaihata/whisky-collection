@@ -1,4 +1,4 @@
-// whisky-collection フロント配信 Worker
+// PHOTO STUDIO（旧 whisky-collection）フロント配信 Worker
 //
 // GitHub の index.html をそのまま配信する。
 // 旧実装はキャッシュが強すぎて git push しても本番に何十分も反映されなかったため、
@@ -19,7 +19,8 @@ export default {
       return json({
         upstreamStatus: r.status,
         bytes: t.length,
-        hasCanvasRenderer: t.includes('buildInstaCanvases'),
+        isPhotoStudio: t.includes('PHOTO STUDIO'),
+        hasCanvasRenderer: t.includes('function renderFull'),
         fetchedAt: new Date().toISOString()
       });
     }
