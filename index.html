@@ -291,6 +291,21 @@ textarea.field { resize: vertical; min-height: 62px; line-height: 1.5; }
   font-size: 13px; line-height: 1.75; min-height: 260px;
   resize: vertical; white-space: pre-wrap;
 }
+.rating-val { font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--accent); }
+.rating-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.rating-row > button[data-v] {
+  width: 42px; height: 42px; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--panel);
+  display: flex; align-items: center; justify-content: center; padding: 0;
+}
+.rating-row > button[data-v] svg { width: 22px; height: 22px; color: var(--line2); }
+.rating-row > button[data-v].on { border-color: var(--accent-d); background: var(--panel2); }
+.rating-row > button[data-v].on svg { color: var(--accent); fill: var(--accent); }
+.rating-clear {
+  margin-left: 4px; padding: 9px 12px; border-radius: 6px;
+  border: 1px solid var(--line); background: transparent;
+  font-size: 11px; color: var(--muted);
+}
 .caption-note { font-size: 10px; color: var(--muted); margin-top: 6px; }
 .caption-note.saved { color: var(--accent); }
 .bottle-actions { display: flex; gap: 8px; margin: 4px 0 16px; }
@@ -540,6 +555,21 @@ textarea.field { resize: vertical; min-height: 62px; line-height: 1.5; }
     </div>
     <div id="bottle-status" class="ov-status"></div>
     <div class="lib-grid" id="bottle-grid"></div>
+
+    <div class="caption-box">
+      <div class="caption-head">
+        <span>評価（4枚目に入る）</span>
+        <span class="rating-val" id="rating-val">未評価</span>
+      </div>
+      <div class="rating-row" id="rating-row">
+        <button data-v="1" onclick="setBottleRating(1)" aria-label="1"></button>
+        <button data-v="2" onclick="setBottleRating(2)" aria-label="2"></button>
+        <button data-v="3" onclick="setBottleRating(3)" aria-label="3"></button>
+        <button data-v="4" onclick="setBottleRating(4)" aria-label="4"></button>
+        <button data-v="5" onclick="setBottleRating(5)" aria-label="5"></button>
+        <button class="rating-clear" onclick="setBottleRating(0)">未評価に戻す</button>
+      </div>
+    </div>
 
     <div class="caption-box">
       <div class="caption-head">
@@ -1468,15 +1498,46 @@ async function ensureNotes() {
   return notes;
 }
 
+// 保存形は { "023": { note: "…", rating: 4 } }。古い文字列だけの形も読めるようにしておく
+function normNote(v) {
+  if (!v) return { note: '', rating: null };
+  if (typeof v === 'string') return { note: v, rating: null };
+  return { note: v.note || '', rating: (typeof v.rating === 'number') ? v.rating : null };
+}
+
+const STAR_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6.1L12 16.8 6.6 19.7l1.2-6.1L3.3 9.4l6.1-.8z"/></svg>';
+
+function paintStars(n) {
+  const row = $('rating-row');
+  row.querySelectorAll('button[data-v]').forEach(b => {
+    b.innerHTML = STAR_SVG;
+    b.classList.toggle('on', n > 0 && parseInt(b.dataset.v, 10) <= n);
+  });
+  $('rating-val').textContent = n > 0 ? n.toFixed(1) : '未評価';
+}
+
 async function loadNote(g) {
   const ta = $('note-text'), note = $('note-note');
   ta.value = ''; note.className = 'caption-note'; note.textContent = '読み込み中…';
+  paintStars(0);
   const n = await ensureNotes();
   if (bottleCur !== g) return;
-  ta.value = n[g.no] || '';
+  const rec = normNote(n[g.no]);
+  ta.value = rec.note;
+  paintStars(rec.rating || 0);
   note.textContent = ta.value
     ? '書くと保存されます。画像への反映は作り直しが必要です'
     : 'ここに書いた言葉が4枚目に入ります（画像の作り直しが必要）';
+}
+
+function setBottleRating(n) {
+  if (!bottleCur) return;
+  paintStars(n);
+  clearTimeout(noteSaveTimer);
+  noteSaveTimer = setTimeout(saveNote, 300);
+  const note = $('note-note');
+  note.className = 'caption-note';
+  note.textContent = '保存中…';
 }
 
 function onNoteInput() {
@@ -1487,18 +1548,23 @@ function onNoteInput() {
   noteSaveTimer = setTimeout(saveNote, 900);
 }
 
+function currentRating() {
+  const on = $('rating-row').querySelectorAll('button[data-v].on').length;
+  return on > 0 ? on : 0;
+}
+
 async function saveNote() {
   if (!bottleCur || !bottleCur.no) return;
-  const text = $('note-text').value;
+  const rec = { note: $('note-text').value, rating: currentRating() };
   const note = $('note-note');
   try {
     const res = await fetch(`${API}/studio/notes`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notes: { [bottleCur.no]: text }, merge: true }),
+      body: JSON.stringify({ notes: { [bottleCur.no]: rec }, merge: true }),
     });
     const d = await res.json();
     if (!res.ok || d.error) throw new Error(d.error || `HTTP ${res.status}`);
-    if (notes) notes[bottleCur.no] = text;
+    if (notes) notes[bottleCur.no] = rec;
     note.className = 'caption-note saved';
     note.textContent = '保存しました（画像に入れるときは作り直します）';
   } catch (e) {
