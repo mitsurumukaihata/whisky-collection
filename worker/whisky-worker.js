@@ -51,6 +51,35 @@ export default {
       } catch (e) { return j({ error: e.message }, 500, cors); }
     }
 
+    // ── /studio/captions ─ 投稿本文（ボトル番号 → 本文）────────
+    // 本文はメタデータに入れるには長すぎるので、R2に1個のJSONとして置く
+    if (url.pathname === "/studio/captions" && request.method === "GET") {
+      try {
+        const obj = await env.IMAGES.get("studio_captions.json");
+        if (!obj) return j({ captions: {} }, 200, cors);
+        const text = await obj.text();
+        return j({ captions: JSON.parse(text) }, 200, cors);
+      } catch (e) { return j({ captions: {}, error: e.message }, 200, cors); }
+    }
+    if (url.pathname === "/studio/captions" && request.method === "POST") {
+      try {
+        const body = await request.json();
+        const captions = body && body.captions;
+        if (!captions || typeof captions !== "object") return j({ error: "captions is required" }, 400, cors);
+        const merge = body.merge === true;
+        let next = captions;
+        if (merge) {
+          const cur = await env.IMAGES.get("studio_captions.json");
+          const prev = cur ? JSON.parse(await cur.text()) : {};
+          next = { ...prev, ...captions };
+        }
+        await env.IMAGES.put("studio_captions.json", JSON.stringify(next), {
+          httpMetadata: { contentType: "application/json; charset=utf-8" }
+        });
+        return j({ ok: true, count: Object.keys(next).length }, 200, cors);
+      } catch (e) { return j({ error: e.message }, 500, cors); }
+    }
+
     // ── /studio/delete ─ 保存済みを1件削除 ─────────────────────
     if (url.pathname === "/studio/delete" && request.method === "POST") {
       try {

@@ -281,6 +281,18 @@ textarea.field { resize: vertical; min-height: 62px; line-height: 1.5; }
 .lib-row-body small { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
 .lib-row-go { color: var(--muted); flex-shrink: 0; }
 .lib-row-go svg { width: 18px; height: 18px; }
+.caption-box { margin-top: 22px; }
+.caption-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.caption-head span { font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--muted); }
+#caption-text {
+  font-size: 13px; line-height: 1.75; min-height: 260px;
+  resize: vertical; white-space: pre-wrap;
+}
+.caption-note { font-size: 10px; color: var(--muted); margin-top: 6px; }
+.caption-note.saved { color: var(--accent); }
 .bottle-actions { display: flex; gap: 8px; margin: 4px 0 16px; }
 .bottle-actions button { flex: 1; padding: 14px 8px; border-radius: 7px; font-size: 13px; font-weight: 700; }
 .lib-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -528,6 +540,18 @@ textarea.field { resize: vertical; min-height: 62px; line-height: 1.5; }
     </div>
     <div id="bottle-status" class="ov-status"></div>
     <div class="lib-grid" id="bottle-grid"></div>
+
+    <div class="caption-box">
+      <div class="caption-head">
+        <span>投稿の本文</span>
+        <button class="btn-ghost" id="btn-copy" onclick="copyCaption()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M15 9V6a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2h3"/></svg>
+          コピー
+        </button>
+      </div>
+      <textarea class="field" id="caption-text" rows="14" placeholder="本文はまだありません" oninput="onCaptionInput()"></textarea>
+      <div class="caption-note" id="caption-note">書き換えるとそのまま保存されます</div>
+    </div>
   </div>
 </div>
 
@@ -1365,8 +1389,82 @@ function openBottle(i) {
     `<span>${it.slide}枚目</span></button>`
   ).join('');
   $('bottle-view').classList.add('show');
+  loadCaption(bottleCur);
   // 保存ボタンを押した瞬間に共有できるよう、開いた時点で裏で取っておく
   prefetchBottle(bottleCur);
+}
+
+// ── 投稿の本文 ────────────────────────────────────────────────────────────
+let captions = null;          // { "001": "本文…" }
+let captionSaveTimer = null;
+
+async function ensureCaptions() {
+  if (captions) return captions;
+  try {
+    const res = await fetch(`${API}/studio/captions`);
+    const data = await res.json();
+    captions = data.captions || {};
+  } catch (e) { captions = {}; }
+  return captions;
+}
+
+async function loadCaption(g) {
+  const ta = $('caption-text'), note = $('caption-note');
+  ta.value = ''; note.className = 'caption-note'; note.textContent = '読み込み中…';
+  const c = await ensureCaptions();
+  if (bottleCur !== g) return;                   // 開き直されていたら書かない
+  ta.value = c[g.no] || '';
+  note.textContent = ta.value ? '書き換えるとそのまま保存されます' : '本文はまだありません';
+}
+
+function onCaptionInput() {
+  const note = $('caption-note');
+  note.className = 'caption-note';
+  note.textContent = '入力中…';
+  clearTimeout(captionSaveTimer);
+  captionSaveTimer = setTimeout(saveCaption, 900);
+}
+
+async function saveCaption() {
+  if (!bottleCur || !bottleCur.no) return;
+  const text = $('caption-text').value;
+  const note = $('caption-note');
+  try {
+    const res = await fetch(`${API}/studio/captions`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ captions: { [bottleCur.no]: text }, merge: true }),
+    });
+    const d = await res.json();
+    if (!res.ok || d.error) throw new Error(d.error || `HTTP ${res.status}`);
+    if (captions) captions[bottleCur.no] = text;
+    note.className = 'caption-note saved';
+    note.textContent = '保存しました';
+  } catch (e) {
+    note.className = 'caption-note';
+    note.textContent = '保存に失敗しました: ' + e.message;
+  }
+}
+
+function copyCaption() {
+  const ta = $('caption-text');
+  const text = ta.value;
+  if (!text.trim()) { toast('本文がありません', true); return; }
+  // クリップボードAPIはユーザー操作の中でしか使えない。ここはボタンの中なので可
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => toast('本文をコピーしました'))
+      .catch(() => copyFallback(ta));
+  } else {
+    copyFallback(ta);
+  }
+}
+function copyFallback(ta) {
+  ta.focus();
+  ta.setSelectionRange(0, ta.value.length);
+  try {
+    const ok = document.execCommand('copy');
+    toast(ok ? '本文をコピーしました' : '長押しでコピーしてください', !ok);
+  } catch (e) { toast('長押しでコピーしてください', true); }
 }
 function closeBottle() { disarmBottleDelete(); $('bottle-view').classList.remove('show'); bottleCur = null; }
 function openLibViewOf(gi, k) {
