@@ -17,15 +17,50 @@ export default {
     const url = new URL(request.url);
 
     // ── /upload ─ 画像をR2に保存 ──────────────────────────────
+    // prefix:"studio" を渡すと studio_ で始まるキーになる（PHOTO STUDIOの保存済み一覧用）
     if (url.pathname === "/upload" && request.method === "POST") {
       try {
-        const { image, mediaType } = await request.json();
+        const { image, mediaType, prefix, name } = await request.json();
         if (!image) return j({ error: "image is required" }, 400, cors);
         const binary = Uint8Array.from(atob(image), c => c.charCodeAt(0));
         const ext = (mediaType || "image/jpeg").split("/")[1] || "jpg";
-        const filename = `whisky_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-        await env.IMAGES.put(filename, binary, { httpMetadata: { contentType: mediaType || "image/jpeg" } });
-        return j({ url: `${url.origin}/images/${filename}` }, 200, cors);
+        const pfx = prefix === "studio" ? "studio_" : "whisky_";
+        const filename = `${pfx}${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+        await env.IMAGES.put(filename, binary, {
+          httpMetadata: { contentType: mediaType || "image/jpeg" },
+          // R2のcustomMetadataはHTTPヘッダ相当でASCIIしか安全に通らない。日本語は必ずエンコードして入れる
+          customMetadata: name ? { name: encodeURIComponent(String(name).slice(0, 120)) } : undefined
+        });
+        return j({ url: `${url.origin}/images/${filename}`, key: filename }, 200, cors);
+      } catch (e) { return j({ error: e.message }, 500, cors); }
+    }
+
+    // ── /studio/list ─ PHOTO STUDIO の保存済み一覧 ─────────────
+    if (url.pathname === "/studio/list" && request.method === "GET") {
+      try {
+        const listed = await env.IMAGES.list({ prefix: "studio_", limit: 300, include: ["customMetadata"] });
+        const items = listed.objects.map(o => ({
+          key: o.key,
+          size: o.size,
+          uploaded: o.uploaded,
+          name: safeDecode(o.customMetadata?.name),
+          url: `${url.origin}/images/${o.key}`
+        }));
+        items.sort((a, b) => new Date(b.uploaded) - new Date(a.uploaded));
+        return j({ items, truncated: listed.truncated === true }, 200, cors);
+      } catch (e) { return j({ error: e.message }, 500, cors); }
+    }
+
+    // ── /studio/delete ─ 保存済みを1件削除 ─────────────────────
+    if (url.pathname === "/studio/delete" && request.method === "POST") {
+      try {
+        const { key } = await request.json();
+        // studio_ 以外は消させない（旧ウイスキー記録の画像を巻き込まないため）
+        if (!key || typeof key !== "string" || !key.startsWith("studio_")) {
+          return j({ error: "studio_ で始まるキーのみ削除できます" }, 400, cors);
+        }
+        await env.IMAGES.delete(key);
+        return j({ ok: true, key }, 200, cors);
       } catch (e) { return j({ error: e.message }, 500, cors); }
     }
 
@@ -110,6 +145,12 @@ export default {
     } catch (e) { return j({ error: e.message }, 500, cors); }
   }
 };
+
+// customMetadata は encodeURIComponent して入れている。旧データや壊れた値でも落ちないように
+function safeDecode(v) {
+  if (!v) return "";
+  try { return decodeURIComponent(v); } catch (e) { return v; }
+}
 
 function j(obj, status, cors) {
   return new Response(JSON.stringify(obj), {

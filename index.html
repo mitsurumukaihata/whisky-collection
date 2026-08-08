@@ -243,6 +243,47 @@ textarea.field { resize: vertical; min-height: 62px; line-height: 1.5; }
 .btn-primary:disabled { opacity: .5; }
 .btn-sec { background: var(--panel2); color: var(--text); border: 1px solid var(--line2); }
 
+/* ── オーバーレイ（保存済み一覧 / 1枚表示） ─────────────────────────────── */
+.overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 70;
+  background: var(--bg);
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.overlay.show { display: block; }
+.overlay.dark { background: #08080a; }
+.ov-head {
+  position: sticky; top: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 12px 14px;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.overlay.dark .ov-head { background: #08080a; }
+.ov-head b { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-body { padding: 14px 14px calc(30px + var(--safe-b)); max-width: 620px; margin: 0 auto; }
+.ov-note { font-size: 11px; color: var(--muted); margin: 0 0 14px; line-height: 1.6; }
+.ov-status { font-size: 12px; color: var(--muted); padding: 10px 0; }
+.ov-status.err { color: #ffb4a8; }
+.lib-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.lib-cell {
+  position: relative; aspect-ratio: 4 / 5; border-radius: 6px; overflow: hidden;
+  background: var(--panel2); border: 1px solid var(--line); padding: 0;
+}
+.lib-cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lib-cell span {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 14px 6px 5px; font-size: 9px; line-height: 1.3; text-align: left;
+  color: #fff; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.8));
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#lib-view-img { max-width: 100%; border-radius: 6px; box-shadow: var(--shadow); }
+.btn-danger {
+  padding: 13px 18px; border-radius: 7px; font-weight: 700; font-size: 13px;
+  background: transparent; border: 1px solid var(--danger); color: var(--danger);
+  white-space: nowrap;
+}
+.btn-danger.armed { background: var(--danger); color: #fff; }
+
 /* ── トースト ───────────────────────────────────────────────────────────── */
 #toast {
   position: fixed; left: 50%; bottom: calc(96px + var(--safe-b));
@@ -263,8 +304,12 @@ textarea.field { resize: vertical; min-height: 62px; line-height: 1.5; }
 
 <header class="app-head">
   <div class="brand"><b>PHOTO STUDIO</b><span>インスタ画像加工</span></div>
-  <div class="head-actions" id="head-actions" style="display:none">
-    <button class="btn-ghost" onclick="pickFiles()">
+  <div class="head-actions">
+    <button class="btn-ghost" onclick="openLibrary()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-4 4 3 3-2 6 4"/></svg>
+      保存済み
+    </button>
+    <button class="btn-ghost" id="btn-add-head" onclick="pickFiles()" style="display:none">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       写真を追加
     </button>
@@ -427,8 +472,43 @@ textarea.field { resize: vertical; min-height: 62px; line-height: 1.5; }
   </button>
   <button class="btn-primary" id="btn-save-all" onclick="saveAll()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M4 19h16"/></svg>
-    <span id="save-all-label">全部を保存</span>
+    <span id="save-all-label">写真に保存</span>
   </button>
+  <button class="btn-sec" id="btn-keep" onclick="keepInApp()" title="アプリに保存">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10M8 9l4 4 4-4"/><rect x="4" y="15" width="16" height="6" rx="2"/></svg>
+    アプリへ
+  </button>
+</div>
+
+<!-- ── 保存済み一覧 ── -->
+<div class="overlay" id="library">
+  <div class="ov-head">
+    <b>保存済み</b>
+    <div style="display:flex;gap:8px">
+      <button class="btn-ghost" onclick="loadLibrary()">更新</button>
+      <button class="btn-ghost" onclick="closeLibrary()">閉じる</button>
+    </div>
+  </div>
+  <div class="ov-body">
+    <p class="ov-note">「アプリへ」で保存した画像です。クラウド（R2）に置いてあるので、iPhoneでもPCでも同じものが見られます。</p>
+    <div id="lib-status" class="ov-status">読み込み中…</div>
+    <div class="lib-grid" id="lib-grid"></div>
+  </div>
+</div>
+
+<!-- ── 保存済みの1枚を開く ── -->
+<div class="overlay dark" id="lib-view">
+  <div class="ov-head">
+    <b id="lib-view-name">　</b>
+    <button class="btn-ghost" onclick="closeLibView()">閉じる</button>
+  </div>
+  <div class="ov-body" style="display:flex;flex-direction:column;align-items:center;gap:16px">
+    <img id="lib-view-img" alt="">
+    <div style="display:flex;gap:8px;width:100%;max-width:420px">
+      <button class="btn-primary" style="flex:1;padding:13px;border-radius:7px;font-weight:700" onclick="shareLibItem()">写真に保存</button>
+      <button class="btn-danger" id="btn-del" onclick="armDelete()">削除</button>
+    </div>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -586,14 +666,14 @@ function showEditor() {
   $('empty').style.display = 'none';
   $('editor').style.display = '';
   $('savebar').style.display = '';
-  $('head-actions').style.display = '';
+  $('btn-add-head').style.display = '';
   $('strip-tools').style.display = items.length > 1 ? 'flex' : 'none';
 }
 function showEmpty() {
   $('empty').style.display = '';
   $('editor').style.display = 'none';
   $('savebar').style.display = 'none';
-  $('head-actions').style.display = 'none';
+  $('btn-add-head').style.display = 'none';
 }
 
 // ── フィルムストリップ ────────────────────────────────────────────────────
@@ -1140,6 +1220,141 @@ function prepareThen(fn) {
       fn();
     }
   })();
+}
+
+// ── 保存済み（クラウド保存 / R2） ────────────────────────────────────────
+// 写真の加工そのものは端末内で完結する。R2に送るのは「アプリへ」を押したときだけ。
+const API = 'https://whisky-proxy.33322666666mm.workers.dev';
+let libItems = [];
+let libCur = null;
+
+function blobToBase64(blob) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result).split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(blob);
+  });
+}
+
+async function keepInApp() {
+  if (!items.length) return;
+  const targets = items.length > 1 ? items : [item()];
+  toast(`アプリに保存中…（${targets.length}枚）`);
+  let ok = 0, ng = 0;
+  for (let i = 0; i < targets.length; i++) {
+    const it = targets[i];
+    try {
+      if (it.dirty || !it.blob) await encodeItem(it);
+      const b64 = await blobToBase64(it.blob);
+      const label = (it.txt.title || '').trim() || it.name.replace(/\.[^.]+$/, '');
+      const res = await fetch(`${API}/upload`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: b64, mediaType: 'image/jpeg', prefix: 'studio', name: label }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+      ok++;
+    } catch (e) { console.error(e); ng++; }
+  }
+  if (ng) toast(`${ok}枚を保存 / ${ng}枚は失敗しました`, true);
+  else toast(`${ok}枚をアプリに保存しました`);
+}
+
+function openLibrary() { $('library').classList.add('show'); loadLibrary(); }
+function closeLibrary() { $('library').classList.remove('show'); }
+
+async function loadLibrary() {
+  const st = $('lib-status'), grid = $('lib-grid');
+  st.className = 'ov-status'; st.textContent = '読み込み中…'; grid.innerHTML = '';
+  try {
+    const res = await fetch(`${API}/studio/list`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    libItems = data.items || [];
+    if (!libItems.length) {
+      st.textContent = 'まだ何も保存されていません。写真を加工して「アプリへ」を押すと、ここに並びます。';
+      return;
+    }
+    st.textContent = `${libItems.length}枚`;
+    grid.innerHTML = libItems.map((it, i) =>
+      `<button class="lib-cell" onclick="openLibView(${i})">` +
+      `<img src="${it.url}" loading="lazy" alt="">` +
+      `<span>${escapeHtml(it.name || jstDate(it.uploaded))}</span></button>`
+    ).join('');
+  } catch (e) {
+    st.className = 'ov-status err';
+    st.textContent = '読み込みに失敗しました: ' + e.message;
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function jstDate(iso) {
+  const d = new Date(iso), p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function openLibView(i) {
+  libCur = libItems[i];
+  $('lib-view-name').textContent = libCur.name || jstDate(libCur.uploaded);
+  $('lib-view-img').src = libCur.url;
+  $('lib-view').classList.add('show');
+}
+function closeLibView() { disarmDelete(); $('lib-view').classList.remove('show'); libCur = null; }
+
+async function shareLibItem() {
+  if (!libCur) return;
+  try {
+    const res = await fetch(libCur.url);
+    const blob = await res.blob();
+    const f = new File([blob], libCur.key.replace(/^studio_/, 'insta_'), { type: 'image/jpeg' });
+    // ここは fetch の後なので iOS では share が拒否されることがある。その場合は download に落とす
+    if (navigator.canShare && navigator.canShare({ files: [f] })) {
+      try { await navigator.share({ files: [f] }); toast('共有シートから写真に保存できます'); return; }
+      catch (err) { if (err && err.name === 'AbortError') return; }
+    }
+    download([f]);
+  } catch (e) { toast('保存に失敗しました: ' + e.message, true); }
+}
+
+// ネイティブの confirm はブラウザに抑制されて「押しても無反応」になることがあるので使わない。
+// 1回目のタップで確認状態にし、2回目で実行する
+let delArmed = false, delTimer = null;
+function armDelete() {
+  const b = $('btn-del');
+  if (!delArmed) {
+    delArmed = true;
+    b.textContent = 'もう一度押すと削除';
+    b.classList.add('armed');
+    clearTimeout(delTimer);
+    delTimer = setTimeout(disarmDelete, 4000);
+    return;
+  }
+  disarmDelete();
+  deleteLibItem();
+}
+function disarmDelete() {
+  delArmed = false;
+  clearTimeout(delTimer);
+  const b = $('btn-del');
+  if (b) { b.textContent = '削除'; b.classList.remove('armed'); }
+}
+
+async function deleteLibItem() {
+  if (!libCur) return;
+  try {
+    const res = await fetch(`${API}/studio/delete`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: libCur.key }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    closeLibView();
+    toast('削除しました');
+    loadLibrary();
+  } catch (e) { toast('削除に失敗しました: ' + e.message, true); }
 }
 
 // ── 入力バインド ──────────────────────────────────────────────────────────
