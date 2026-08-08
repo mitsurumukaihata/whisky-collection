@@ -264,6 +264,25 @@ textarea.field { resize: vertical; min-height: 62px; line-height: 1.5; }
 .ov-note { font-size: 11px; color: var(--muted); margin: 0 0 14px; line-height: 1.6; }
 .ov-status { font-size: 12px; color: var(--muted); padding: 10px 0; }
 .ov-status.err { color: #ffb4a8; }
+/* ボトルごとの行 */
+.lib-list { display: flex; flex-direction: column; gap: 8px; }
+.lib-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  padding: 8px 12px 8px 8px; border-radius: 8px;
+  background: var(--panel); border: 1px solid var(--line); color: var(--text);
+}
+.lib-row:active { background: var(--panel2); }
+.lib-row > img {
+  width: 52px; height: 65px; object-fit: cover; border-radius: 4px;
+  flex-shrink: 0; background: var(--panel2);
+}
+.lib-row-body { flex: 1; min-width: 0; }
+.lib-row-body b { display: block; font-size: 13px; font-weight: 700; line-height: 1.4; }
+.lib-row-body small { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
+.lib-row-go { color: var(--muted); flex-shrink: 0; }
+.lib-row-go svg { width: 18px; height: 18px; }
+.bottle-actions { display: flex; gap: 8px; margin: 4px 0 16px; }
+.bottle-actions button { flex: 1; padding: 14px 8px; border-radius: 7px; font-size: 13px; font-weight: 700; }
 .lib-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .lib-cell {
   position: relative; aspect-ratio: 4 / 5; border-radius: 6px; overflow: hidden;
@@ -492,7 +511,23 @@ textarea.field { resize: vertical; min-height: 62px; line-height: 1.5; }
   <div class="ov-body">
     <p class="ov-note">「アプリへ」で保存した画像です。クラウド（R2）に置いてあるので、iPhoneでもPCでも同じものが見られます。</p>
     <div id="lib-status" class="ov-status">読み込み中…</div>
-    <div class="lib-grid" id="lib-grid"></div>
+    <div class="lib-list" id="lib-list"></div>
+  </div>
+</div>
+
+<!-- ── 1本ぶん（4枚）を開く ── -->
+<div class="overlay" id="bottle-view">
+  <div class="ov-head">
+    <b id="bottle-name">　</b>
+    <button class="btn-ghost" onclick="closeBottle()">戻る</button>
+  </div>
+  <div class="ov-body">
+    <div class="bottle-actions">
+      <button class="btn-primary" id="btn-bottle-save" onclick="saveBottle()">まとめて保存</button>
+      <button class="btn-danger" id="btn-bottle-del" onclick="armBottleDelete()">削除</button>
+    </div>
+    <div id="bottle-status" class="ov-status"></div>
+    <div class="lib-grid" id="bottle-grid"></div>
   </div>
 </div>
 
@@ -1226,7 +1261,10 @@ function prepareThen(fn) {
 // 写真の加工そのものは端末内で完結する。R2に送るのは「アプリへ」を押したときだけ。
 const API = 'https://whisky-proxy.33322666666mm.workers.dev';
 let libItems = [];
+let libGroups = [];
 let libCur = null;
+let bottleCur = null;
+const bottleFiles = new Map();   // key → File（共有を同期で呼べるように先読みしておく）
 
 function blobToBase64(blob) {
   return new Promise((res, rej) => {
@@ -1264,9 +1302,33 @@ async function keepInApp() {
 function openLibrary() { $('library').classList.add('show'); loadLibrary(); }
 function closeLibrary() { $('library').classList.remove('show'); }
 
+// 「001 銘柄名 (1/4)」からボトル番号・銘柄・何枚目かを取り出す
+function parseLabel(name) {
+  const m = String(name || '').match(/^(\d{3})\s+(.+?)\s*\((\d+)\/(\d+)\)\s*$/);
+  if (!m) return null;
+  return { no: m[1], title: m[2], slide: parseInt(m[3], 10), total: parseInt(m[4], 10) };
+}
+
+// 同じボトルの4枚をひとまとめにする
+function groupItems(items) {
+  const map = new Map();
+  for (const it of items) {
+    const p = parseLabel(it.name);
+    const key = p ? `${p.no}|${p.title}` : `single|${it.key}`;
+    if (!map.has(key)) {
+      map.set(key, { key, no: p ? p.no : '', title: p ? p.title : (it.name || jstDate(it.uploaded)), items: [] });
+    }
+    map.get(key).items.push(Object.assign({ slide: p ? p.slide : 1 }, it));
+  }
+  const groups = [...map.values()];
+  groups.forEach(g => g.items.sort((a, b) => a.slide - b.slide));
+  groups.sort((a, b) => (a.no || 'zzz').localeCompare(b.no || 'zzz'));
+  return groups;
+}
+
 async function loadLibrary() {
-  const st = $('lib-status'), grid = $('lib-grid');
-  st.className = 'ov-status'; st.textContent = '読み込み中…'; grid.innerHTML = '';
+  const st = $('lib-status'), list = $('lib-list');
+  st.className = 'ov-status'; st.textContent = '読み込み中…'; list.innerHTML = '';
   try {
     const res = await fetch(`${API}/studio/list`);
     const data = await res.json();
@@ -1276,16 +1338,114 @@ async function loadLibrary() {
       st.textContent = 'まだ何も保存されていません。写真を加工して「アプリへ」を押すと、ここに並びます。';
       return;
     }
-    st.textContent = `${libItems.length}枚`;
-    grid.innerHTML = libItems.map((it, i) =>
-      `<button class="lib-cell" onclick="openLibView(${i})">` +
-      `<img src="${it.url}" loading="lazy" alt="">` +
-      `<span>${escapeHtml(it.name || jstDate(it.uploaded))}</span></button>`
+    libGroups = groupItems(libItems);
+    st.textContent = `${libGroups.length}本 / ${libItems.length}枚`;
+    list.innerHTML = libGroups.map((g, i) =>
+      `<button class="lib-row" onclick="openBottle(${i})">` +
+      `<img src="${g.items[0].url}" loading="lazy" alt="">` +
+      `<div class="lib-row-body"><b>${escapeHtml((g.no ? g.no + '  ' : '') + g.title)}</b>` +
+      `<small>${g.items.length}枚</small></div>` +
+      `<span class="lib-row-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></span>` +
+      `</button>`
     ).join('');
   } catch (e) {
     st.className = 'ov-status err';
     st.textContent = '読み込みに失敗しました: ' + e.message;
   }
+}
+
+// ── 1本ぶん（4枚） ────────────────────────────────────────────────────────
+function openBottle(i) {
+  bottleCur = libGroups[i];
+  disarmBottleDelete();
+  $('bottle-name').textContent = (bottleCur.no ? bottleCur.no + '  ' : '') + bottleCur.title;
+  $('bottle-grid').innerHTML = bottleCur.items.map((it, k) =>
+    `<button class="lib-cell" onclick="openLibViewOf(${i},${k})">` +
+    `<img src="${it.url}" loading="lazy" alt="">` +
+    `<span>${it.slide}枚目</span></button>`
+  ).join('');
+  $('bottle-view').classList.add('show');
+  // 保存ボタンを押した瞬間に共有できるよう、開いた時点で裏で取っておく
+  prefetchBottle(bottleCur);
+}
+function closeBottle() { disarmBottleDelete(); $('bottle-view').classList.remove('show'); bottleCur = null; }
+function openLibViewOf(gi, k) {
+  const g = libGroups[gi];
+  libCur = g.items[k];
+  $('lib-view-name').textContent = libCur.name || jstDate(libCur.uploaded);
+  $('lib-view-img').src = libCur.url;
+  $('lib-view').classList.add('show');
+}
+
+async function prefetchBottle(g) {
+  const st = $('bottle-status');
+  st.className = 'ov-status'; st.textContent = '書き出しを準備中…';
+  const files = [];
+  for (const it of g.items) {
+    if (bottleFiles.has(it.key)) { files.push(bottleFiles.get(it.key)); continue; }
+    try {
+      const r = await fetch(it.url);
+      const b = await r.blob();
+      // 写真アプリで並び順が分かるよう「番号_何枚目」で名前を付ける
+      const p = parseLabel(it.name);
+      const fname = p ? `insta_${p.no}_${p.slide}.jpg` : it.key.replace(/^studio_/, 'insta_');
+      const f = new File([b], fname, { type: 'image/jpeg' });
+      bottleFiles.set(it.key, f);
+      files.push(f);
+    } catch (e) { /* 失敗したぶんは保存時にダウンロードで拾う */ }
+  }
+  if (bottleCur === g) {
+    st.textContent = files.length === g.items.length
+      ? `${files.length}枚 準備できました`
+      : `${files.length}/${g.items.length}枚 準備できました`;
+  }
+}
+
+function saveBottle() {
+  if (!bottleCur) return;
+  const files = bottleCur.items.map(it => bottleFiles.get(it.key)).filter(Boolean);
+  if (!files.length) { $('bottle-status').textContent = 'まだ準備中です。数秒待ってからもう一度押してください'; prefetchBottle(bottleCur); return; }
+  // ★iOS: ここで await を挟まないこと（挟むと共有が拒否される）
+  shareOrDownload(files);
+}
+
+let bottleDelArmed = false, bottleDelTimer = null;
+function armBottleDelete() {
+  const b = $('btn-bottle-del');
+  if (!bottleDelArmed) {
+    bottleDelArmed = true;
+    b.textContent = `もう一度押すと${bottleCur ? bottleCur.items.length : 0}枚削除`;
+    b.classList.add('armed');
+    clearTimeout(bottleDelTimer);
+    bottleDelTimer = setTimeout(disarmBottleDelete, 4000);
+    return;
+  }
+  disarmBottleDelete();
+  deleteBottle();
+}
+function disarmBottleDelete() {
+  bottleDelArmed = false; clearTimeout(bottleDelTimer);
+  const b = $('btn-bottle-del');
+  if (b) { b.textContent = '削除'; b.classList.remove('armed'); }
+}
+async function deleteBottle() {
+  if (!bottleCur) return;
+  const st = $('bottle-status');
+  st.className = 'ov-status'; st.textContent = '削除中…';
+  let ok = 0;
+  for (const it of bottleCur.items) {
+    try {
+      const res = await fetch(`${API}/studio/delete`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: it.key }),
+      });
+      const d = await res.json();
+      if (res.ok && !d.error) { ok++; bottleFiles.delete(it.key); }
+    } catch (e) { /* 続行 */ }
+  }
+  closeBottle();
+  toast(`${ok}枚を削除しました`);
+  loadLibrary();
 }
 
 function escapeHtml(s) {
@@ -1309,7 +1469,9 @@ async function shareLibItem() {
   try {
     const res = await fetch(libCur.url);
     const blob = await res.blob();
-    const f = new File([blob], libCur.key.replace(/^studio_/, 'insta_'), { type: 'image/jpeg' });
+    const p = parseLabel(libCur.name);
+    const fname = p ? `insta_${p.no}_${p.slide}.jpg` : libCur.key.replace(/^studio_/, 'insta_');
+    const f = new File([blob], fname, { type: 'image/jpeg' });
     // ここは fetch の後なので iOS では share が拒否されることがある。その場合は download に落とす
     if (navigator.canShare && navigator.canShare({ files: [f] })) {
       try { await navigator.share({ files: [f] }); toast('共有シートから写真に保存できます'); return; }
@@ -1351,8 +1513,11 @@ async function deleteLibItem() {
     });
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    const gone = libCur.key;          // closeLibView() で libCur が null になる前に控える
+    bottleFiles.delete(gone);
     closeLibView();
     toast('削除しました');
+    if (bottleCur) closeBottle();     // 開いていたボトルは一覧に戻して取り直す
     loadLibrary();
   } catch (e) { toast('削除に失敗しました: ' + e.message, true); }
 }
