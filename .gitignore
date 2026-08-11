@@ -1,3 +1,8 @@
 .wrangler/
 node_modules/
 .claude/
+
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
